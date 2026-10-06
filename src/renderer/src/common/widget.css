@@ -1,0 +1,35 @@
+:root {
+  --scale: 1;
+  --bg: #ffffff;
+  --fg: #1d2129;
+  --muted: #7a8190;
+  --line: #e4e7ec;
+  --accent: #2f6fed;
+  --accent-soft: #e8f0ff;
+  --warn: #e5484d;
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  --bg: #16181d;
+  --fg: #f1f3f6;
+  --muted: #8b93a3;
+  --line: #2b2f37;
+  --accent: #6ea0ff;
+  --accent-soft: #1f2c47;
+  --warn: #ff6b6f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-size: calc(16px * var(--scale));
+  overflow: hidden;
+  user-select: none;
+}
+/* 잠금 해제 상태에서는 창 어디를 잡아도 이동 */
+:root[data-locked='false'] .drag { -webkit-app-region: drag; }
+.no-drag, button, input, select, textarea { -webkit-app-region: no-drag; }
+:root[data-locked='false'] body { outline: 2px dashed var(--line); outline-offset: -2px; }

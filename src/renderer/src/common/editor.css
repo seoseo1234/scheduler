@@ -1,0 +1,25 @@
+.task-editor ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.task-editor li, .task-editor .add { display: flex; gap: 4px; align-items: center; }
+.task-editor .add { margin-top: 6px; }
+.task-editor input {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+  min-width: 0;
+}
+.task-editor input.icon { width: 2.6em; text-align: center; flex: none; }
+.task-editor input.text, .task-editor .add input { flex: 1; }
+.task-editor button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 7px;
+  cursor: pointer;
+  flex: none;
+}
+.task-editor button:disabled { opacity: 0.35; cursor: default; }

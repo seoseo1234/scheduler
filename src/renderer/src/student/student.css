@@ -1,0 +1,72 @@
+.student {
+  height: 100%;
+  padding: 1em 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+}
+.clock .time {
+  font-size: 3em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.clock .date { font-size: 1.15em; color: var(--muted); margin-top: 0.2em; }
+
+.status {
+  background: var(--accent-soft);
+  border-radius: 0.6em;
+  padding: 0.7em 0.9em;
+}
+.status .now { font-size: 1.5em; font-weight: 700; }
+.status .left { color: var(--accent); }
+.status .next { font-size: 1.1em; color: var(--muted); margin-top: 0.25em; }
+.status.calm { font-size: 1.3em; font-weight: 700; text-align: center; }
+
+.timetable { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+.timetable li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35em 0.5em;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.15em;
+}
+.timetable li.past { opacity: 0.35; }
+.timetable li.current {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 0.4em;
+  font-weight: 700;
+}
+.timetable .period { min-width: 4em; }
+
+.morning h2 { font-size: 1.4em; margin: 0 0 0.4em; }
+.morning ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45em; }
+.morning li { display: flex; align-items: center; gap: 0.5em; font-size: 1.4em; font-weight: 600; }
+.morning li.done .text { text-decoration: line-through; opacity: 0.5; }
+.morning .num {
+  flex: none;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.8em;
+}
+.morning .empty { color: var(--muted); }
+
+/* 수업 알림 배너 */
+.banner {
+  border-radius: 0.6em;
+  padding: 0.7em 0.9em;
+  font-size: 1.35em;
+  font-weight: 800;
+  line-height: 1.35;
+  background: #ffb020;
+  color: #2a1a00;
+  word-break: keep-all;
+}
+.banner-start { background: #22a55b; color: #fff; text-align: center; font-size: 1.6em; }
