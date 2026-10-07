@@ -44,6 +44,8 @@ export class WindowManager {
   private saveTimers: Partial<Record<WidgetRole, NodeJS.Timeout>> = {};
   /** 종료 중이면 위젯 창이 닫혀도 다시 만들지 않는다. */
   quitting = false;
+  /** 트레이 메뉴로 위젯을 숨긴 상태. 프로그램을 다시 켜면 풀린다. */
+  private widgetsHidden = false;
 
   constructor(private readonly store: SettingsStore) {
     store.on('change', (next, prev) => this.onSettingsChange(next, prev));
@@ -62,6 +64,25 @@ export class WindowManager {
   createWidgets(): void {
     this.createWidget('student');
     this.createWidget('teacher');
+  }
+
+  get hidden(): boolean {
+    return this.widgetsHidden;
+  }
+
+  /** 학생·교사 위젯을 트레이로 숨기거나 다시 보여준다. */
+  setWidgetsHidden(hidden: boolean): void {
+    this.widgetsHidden = hidden;
+    for (const role of ['student', 'teacher'] as const) {
+      const win = this.widgets[role];
+      if (!win || win.isDestroyed()) continue;
+      if (hidden) {
+        detachFromDesktop(win);
+        win.hide();
+      } else {
+        this.applyWidget(role);
+      }
+    }
   }
 
   private createWidget(role: WidgetRole): void {
@@ -107,7 +128,8 @@ export class WindowManager {
   /** 설정에 맞춰 창 위치·레이어·불투명도·잠금을 적용한다. */
   private applyWidget(role: WidgetRole): void {
     const win = this.widgets[role];
-    if (!win || win.isDestroyed()) return;
+    // 숨긴 동안에는 모니터·설정이 바뀌어도 다시 띄우지 않는다. 보이게 할 때 다시 적용한다.
+    if (!win || win.isDestroyed() || this.widgetsHidden) return;
     const cfg = this.store.get().display[role];
     let display = findDisplay(cfg.monitorId);
 
@@ -185,7 +207,7 @@ export class WindowManager {
       const b = next.display[role];
       if (a === b) continue;
       const win = this.widgets[role];
-      if (!win || win.isDestroyed()) continue;
+      if (!win || win.isDestroyed() || this.widgetsHidden) continue;
       // 모니터·레이어·잠금이 바뀌면 저장된 위치까지 다시 적용하고, 나머지는 모양만 바꾼다.
       if (a.monitorId !== b.monitorId || a.layer !== b.layer || a.locked !== b.locked) this.applyWidget(role);
       else this.applyAppearance(win, b);

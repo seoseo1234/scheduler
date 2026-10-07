@@ -34,11 +34,21 @@ export function createTray(store: SettingsStore, windows: WindowManager, alerts:
     const s = store.get();
     const locked = s.display.student.locked && s.display.teacher.locked;
     const paused = isPaused(s.alerts, new Date());
+    tray.setToolTip(windows.hidden ? '우리반 시계 (위젯 숨김)' : '우리반 시계');
     tray.setContextMenu(
       Menu.buildFromTemplate([
         { label: '설정 열기', click: () => windows.openSettings() },
         { label: '모니터 확인', click: () => windows.identifyMonitors() },
         { type: 'separator' },
+        {
+          label: '위젯 숨기기',
+          type: 'checkbox',
+          checked: windows.hidden,
+          click: () => {
+            windows.setWidgetsHidden(!windows.hidden);
+            build();
+          },
+        },
         { label: '위젯 위치 잠금', type: 'checkbox', checked: locked, click: () => windows.setAllLocked(!locked) },
         {
           label: paused ? '알림 일시정지 중' : '알림 일시정지',
