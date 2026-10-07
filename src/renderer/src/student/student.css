@@ -1,51 +1,193 @@
+/* 학생 위젯: 위는 하늘, 아래는 크림색. 맨 아래에 남는 공간이 있으면 그림을 보여준다. */
+:root {
+  --sky-top: #92d6f8;
+  --sky-low: #dff3fe;
+  --cream: #fffbe8;
+  --ink: #141b34;
+  --ink-stroke: #ffffff;
+  --row: #ffffff;
+  --row-shadow: rgba(61, 143, 201, 0.14);
+  --badge: #e8f2fc;
+  --leader: #a9c6ec;
+  --dash: #8fa8d6;
+  --note-bg: #fdfbd5;
+  --note-border: #f8d84a;
+  --note-fg: #141b34;
+  --tape: rgba(255, 224, 138, 0.92);
+}
+:root[data-theme='dark'] {
+  --sky-top: #1f3a57;
+  --sky-low: #1c2a3c;
+  --cream: #1b2330;
+  --ink: #f4f8fc;
+  --ink-stroke: #0f1622;
+  --row: #243245;
+  --row-shadow: rgba(0, 0, 0, 0.25);
+  --badge: #2f4560;
+  --leader: #4b6688;
+  --dash: #6f88b3;
+  --note-bg: #37321f;
+  --note-border: #c9a93e;
+  --note-fg: #f7dd8c;
+  --tape: rgba(201, 169, 62, 0.85);
+}
+
 .student {
+  position: relative;
   height: 100%;
-  padding: 1em 1.1em;
+  padding: 1em 1.1em 0;
   display: flex;
   flex-direction: column;
-  gap: 0.8em;
+  gap: 0.75em;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-low) 24%, var(--cream) 46%, var(--cream) 100%);
 }
+.student > * { position: relative; z-index: 1; }
+.student > .sky-sun {
+  position: absolute;
+  z-index: 0;
+  top: -0.3em;
+  right: -0.4em;
+  width: 6.5em;
+  pointer-events: none;
+}
+:root[data-theme='dark'] .sky-sun,
+:root[data-theme='dark'] .sky-rays { opacity: 0.6; }
+
+/* 흰 테두리를 두른 굵은 시계 */
 .clock .time {
-  font-size: 3em;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  position: relative;
+  display: inline-block;
+  font-size: 3.3em;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  -webkit-text-stroke: 0.14em var(--ink-stroke);
+  paint-order: stroke fill;
 }
-.clock .date { font-size: 1.15em; color: var(--muted); margin-top: 0.2em; }
+.sky-rays {
+  position: absolute;
+  top: -0.42em;
+  right: 0.1em;
+  width: 0.95em;
+  pointer-events: none;
+}
+.clock .date {
+  margin-top: 0.15em;
+  font-size: 1.3em;
+  color: var(--ink);
+  -webkit-text-stroke: 0.2em var(--ink-stroke);
+  paint-order: stroke fill;
+}
 
 .status {
-  background: var(--accent-soft);
-  border: 1px solid var(--line);
-  border-radius: 0.9em;
-  padding: 0.7em 0.9em;
+  border: 3px solid var(--accent-fill);
+  border-radius: 1.1em;
+  padding: 0.7em 1em;
+  background: color-mix(in srgb, var(--row) 88%, transparent);
+  box-shadow: 0 0.3em 0.9em var(--row-shadow);
 }
-.status .now { font-size: 1.5em; font-weight: 700; }
+.status .now { font-size: 1.5em; }
 .status .left { color: var(--accent); }
 .status .next { font-size: 1.1em; color: var(--muted); margin-top: 0.25em; }
-.status.calm { font-size: 1.3em; font-weight: 700; text-align: center; word-break: keep-all; background: var(--sun-soft); border-color: var(--sun); }
 
-.timetable { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+/* 수업이 없거나 끝났을 때: 테이프를 붙인 노란 메모 */
+.status.calm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  margin-top: 0.45em;
+  padding: 0.9em 0.5em 0.8em;
+  border-color: var(--note-border);
+  background: var(--note-bg);
+  color: var(--note-fg);
+  font-size: 1.4em;
+  line-height: 1.3;
+  text-align: center;
+}
+.status.calm::before {
+  content: '♥';
+  position: absolute;
+  top: -0.75em;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 4.5em;
+  height: 1.3em;
+  display: grid;
+  place-items: center;
+  border-radius: 0.2em;
+  background: var(--tape);
+  color: #f06a7a;
+  font-size: 0.65em;
+}
+.status.calm .star { flex: none; color: #f8c93a; font-size: 1.1em; }
+
+.timetable {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  min-height: 0;
+  overflow: hidden;
+}
 .timetable li {
   display: flex;
-  justify-content: space-between;
-  padding: 0.35em 0.5em;
-  border-bottom: 1px solid var(--line);
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.25em 0.9em 0.25em 0.3em;
+  border-radius: 999px;
+  background: var(--row);
+  box-shadow: 0 0.15em 0.5em var(--row-shadow);
   font-size: 1.15em;
 }
-.timetable li.past { opacity: 0.35; }
-.timetable li.current {
-  background: var(--accent-fill);
-  color: var(--on-accent);
-  border-bottom-color: transparent;
-  border-radius: 0.7em;
-  font-weight: 700;
+.timetable .period {
+  flex: none;
+  min-width: 4.2em;
+  padding: 0.12em 0.8em;
+  border-radius: 999px;
+  background: var(--badge);
+  color: var(--ink);
+  text-align: center;
 }
-.timetable .period { min-width: 4em; }
+.timetable .leader { flex: 1; min-width: 1em; margin: 0 0.2em; border-bottom: 0.18em dotted var(--leader); }
+.timetable .subject { flex: none; }
+/* 과목이 없으면 짧은 막대로 */
+.timetable .subject.empty {
+  display: inline-block;
+  width: 1.4em;
+  height: 0.22em;
+  border-radius: 999px;
+  background: var(--dash);
+  color: transparent;
+  overflow: hidden;
+}
+.timetable li.past { opacity: 0.7; }
+.timetable li.current { background: var(--accent-fill); color: var(--on-accent); }
+.timetable li.current .period { background: #ffffff; color: #1f3b52; }
 
-.morning h2 { font-size: 1.4em; margin: 0 0 0.4em; }
+.morning h2 {
+  margin: 0 0 0.45em;
+  font-size: 1.4em;
+  font-weight: 400;
+  color: var(--ink);
+  -webkit-text-stroke: 0.18em var(--ink-stroke);
+  paint-order: stroke fill;
+}
 .morning ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45em; }
-.morning li { display: flex; align-items: center; gap: 0.5em; font-size: 1.4em; font-weight: 600; }
+.morning li {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.3em 0.9em 0.3em 0.35em;
+  border-radius: 999px;
+  background: var(--row);
+  box-shadow: 0 0.15em 0.5em var(--row-shadow);
+  font-size: 1.35em;
+}
 .morning li.done .text { text-decoration: line-through; opacity: 0.5; }
 .morning .num {
   flex: none;
@@ -60,15 +202,27 @@
 }
 .morning .empty { color: var(--muted); }
 
+/* 남는 공간을 채우는 아래 그림 (위쪽은 흐리게) */
+.scene {
+  flex: 1 1 0;
+  min-height: 0;
+  margin: 0 -1.1em;
+  background-size: cover;
+  background-position: center bottom;
+  -webkit-mask-image: linear-gradient(transparent, #000 22%);
+  mask-image: linear-gradient(transparent, #000 22%);
+}
+:root[data-theme='dark'] .scene { opacity: 0.55; }
+
 /* 수업 알림 배너 */
 .banner {
-  border-radius: 0.9em;
+  border: 3px solid var(--note-border);
+  border-radius: 1.1em;
   padding: 0.7em 0.9em;
   font-size: 1.35em;
-  font-weight: 800;
   line-height: 1.35;
   background: var(--sun);
   color: var(--on-sun);
   word-break: keep-all;
 }
-.banner-start { background: var(--accent-fill); color: var(--on-accent); text-align: center; font-size: 1.6em; }
+.banner-start { border-color: var(--accent); background: var(--accent-fill); color: var(--on-accent); text-align: center; font-size: 1.6em; }

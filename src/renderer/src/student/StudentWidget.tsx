@@ -18,6 +18,9 @@ import { useApiSettings } from '../common/useApiSettings';
 import { useNow } from '../common/useNow';
 import { playSound } from '../common/sound';
 import { useWidgetDisplay } from '../common/widget';
+import raysArt from '../assets/rays.webp';
+import sceneArt from '../assets/scene.webp';
+import sunArt from '../assets/sun.webp';
 
 export function StudentWidget({ api }: { api: StudentApi }) {
   const settings = useApiSettings(api);
@@ -35,13 +38,33 @@ export function StudentWidget({ api }: { api: StudentApi }) {
 
   return (
     <div className="student drag">
+      <img className="sky-sun" src={sunArt} alt="" />
       {banner && <div className={`banner banner-${banner.kind}`}>{banner.text}</div>}
       <header className="clock">
-        <div className="time">{formatKoreanTime(now)}</div>
+        <div className="time">
+          {formatKoreanTime(now)}
+          <img className="sky-rays" src={raysArt} alt="" />
+        </div>
         <div className="date">{formatKoreanDate(now)}</div>
       </header>
       <StatusLine state={state} />
       {morning ? <MorningTasks settings={settings} now={now} /> : <Timetable plan={plan} now={now} state={state} />}
+      {/* 남는 공간에만 보이는 아래 그림. 공간이 없으면 0까지 줄어든다. */}
+      <div className="scene" style={{ backgroundImage: `url(${sceneArt})` }} />
+    </div>
+  );
+}
+
+function CalmStatus({ children }: { children: string }) {
+  return (
+    <div className="status calm">
+      <span className="star" aria-hidden="true">
+        ★
+      </span>
+      <span className="text">{children}</span>
+      <span className="star" aria-hidden="true">
+        ★
+      </span>
     </div>
   );
 }
@@ -49,9 +72,9 @@ export function StudentWidget({ api }: { api: StudentApi }) {
 function StatusLine({ state }: { state: CurrentState }) {
   switch (state.phase) {
     case 'noSchool':
-      return <div className="status calm">오늘은 수업이 없는 날이에요 🌈</div>;
+      return <CalmStatus>오늘은 수업이 없는 날이에요 🌈</CalmStatus>;
     case 'afterSchool':
-      return <div className="status calm">오늘 수업이 모두 끝났어요. 수고했어요! 👏</div>;
+      return <CalmStatus>오늘 수업이 모두 끝났어요. 수고했어요! 👏</CalmStatus>;
     case 'beforeSchool':
     case 'gap':
       return (
@@ -86,7 +109,8 @@ function Timetable({ plan, now, state }: { plan: DayPlan; now: Date; state: Curr
       {classes.map((b) => (
         <li key={b.id} className={b.id === currentId ? 'current' : isBlockPast(b, now) ? 'past' : ''}>
           <span className="period">{b.name}</span>
-          <span className="subject">{b.subject || '—'}</span>
+          <span className="leader" />
+          <span className={b.subject ? 'subject' : 'subject empty'}>{b.subject || '—'}</span>
         </li>
       ))}
     </ol>

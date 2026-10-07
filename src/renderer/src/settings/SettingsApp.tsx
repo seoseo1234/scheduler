@@ -9,16 +9,18 @@ import { GeneralTab } from './GeneralTab';
 import { GoogleTab } from './GoogleTab';
 import { ScheduleTab } from './ScheduleTab';
 import { SubjectsTab } from './SubjectsTab';
+import { Icon, type IconName } from './icons';
+import schoolArt from '../assets/school.webp';
 
 const TABS = [
-  { id: 'display', label: '화면' },
-  { id: 'schedule', label: '시정표' },
-  { id: 'subjects', label: '시간표' },
-  { id: 'morning', label: '아침 할 일' },
-  { id: 'alerts', label: '알림' },
-  { id: 'google', label: '구글 연동' },
-  { id: 'general', label: '일반' },
-] as const;
+  { id: 'display', label: '화면', icon: 'monitor' },
+  { id: 'schedule', label: '시정표', icon: 'calendar' },
+  { id: 'subjects', label: '시간표', icon: 'clock' },
+  { id: 'morning', label: '아침 할 일', icon: 'clipboard' },
+  { id: 'alerts', label: '알림', icon: 'bell' },
+  { id: 'google', label: '구글 연동', icon: 'link' },
+  { id: 'general', label: '일반', icon: 'gear' },
+] as const satisfies readonly { id: string; label: string; icon: IconName }[];
 type TabId = (typeof TABS)[number]['id'];
 
 export function SettingsApp({ api }: { api: SettingsApi }) {
@@ -56,9 +58,11 @@ export function SettingsApp({ api }: { api: SettingsApi }) {
               setError(null);
             }}
           >
+            <Icon name={t.icon} />
             {t.label}
           </button>
         ))}
+        <img className="tabs-art" src={schoolArt} alt="" />
       </nav>
       <main className="panel">
         {error && <div className="error">{error}</div>}
