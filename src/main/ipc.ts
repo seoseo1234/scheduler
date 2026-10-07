@@ -6,12 +6,19 @@ import { OverlayChannel, SettingsChannel, StudentChannel, TeacherChannel, type P
 import type { AlertKind } from '@shared/schedule';
 import type { AlertService } from './alerts';
 import type { GoogleService } from './google';
+import type { UpdateService } from './updater';
 import type { MorningTasks, Settings, WidgetRole } from '@shared/types';
 import { listMonitors } from './monitors';
 import { SettingsError, type SettingsStore } from './store';
 import { toStudentSettings, type WindowManager } from './windows';
 
-export function registerIpc(store: SettingsStore, windows: WindowManager, alerts: AlertService, google: GoogleService): void {
+export function registerIpc(
+  store: SettingsStore,
+  windows: WindowManager,
+  alerts: AlertService,
+  google: GoogleService,
+  updates: UpdateService,
+): void {
   const tryUpdate = (patch: Partial<Settings>): UpdateResult<Settings> => {
     try {
       return { ok: true, settings: store.update(patch) };
@@ -72,6 +79,10 @@ export function registerIpc(store: SettingsStore, windows: WindowManager, alerts
     edition: appEdition(),
     canAutoLaunch: appEdition() !== 'dev',
   }));
+  handle('settings', SettingsChannel.updateStatus, () => updates.get());
+  handle('settings', SettingsChannel.checkUpdate, () => updates.check());
+  handle('settings', SettingsChannel.installUpdate, () => updates.install());
+  handle('settings', SettingsChannel.openDownloadPage, () => updates.openDownloadPage());
   handle('settings', SettingsChannel.exportSettings, async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     const options: Electron.SaveDialogOptions = {

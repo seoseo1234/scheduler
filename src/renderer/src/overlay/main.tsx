@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { OverlayApi } from '@shared/api';
 import type { OverlayPayload } from '@shared/ipc';
+import '@fontsource/jua';
 import './overlay.css';
 
 const api = window.api as OverlayApi;

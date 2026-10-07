@@ -1,6 +1,6 @@
 // preload가 window.api로 노출하는 API 타입. 창 종류마다 다른 API를 받는다.
 import type { AlertKind } from './schedule/alerts';
-import type { AppInfo, BannerPayload, ConnectionTestResult, GoogleInfo, OverlayPayload, PauseMode, SoundPayload, UpdateResult } from './ipc';
+import type { AppInfo, AppUpdateStatus, BannerPayload, ConnectionTestResult, GoogleInfo, OverlayPayload, PauseMode, SoundPayload, UpdateResult } from './ipc';
 import type { GoogleSnapshot, MonitorInfo, MorningTasks, Settings, StudentSettings, TeacherSettings } from './types';
 
 type Unsubscribe = () => void;
@@ -46,6 +46,12 @@ export interface SettingsApi {
   appInfo(): Promise<AppInfo>;
   onSettings(cb: (s: Settings) => void): Unsubscribe;
   onMonitors(cb: (m: MonitorInfo[]) => void): Unsubscribe;
+  updateStatus(): Promise<AppUpdateStatus>;
+  checkUpdate(): Promise<void>;
+  /** 받아 둔 업데이트를 설치하고 다시 시작 */
+  installUpdate(): Promise<void>;
+  openDownloadPage(): Promise<void>;
+  onUpdate(cb: (s: AppUpdateStatus) => void): Unsubscribe;
 }
 
 export interface OverlayApi {

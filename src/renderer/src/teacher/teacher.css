@@ -5,6 +5,8 @@
   align-items: center;
   padding: 0.6em 0.8em;
   border-bottom: 1px solid var(--line);
+  background: linear-gradient(110deg, var(--accent-soft) 0%, color-mix(in srgb, var(--sun-soft) 58%, var(--accent-soft)) 100%);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .bar .title { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; }
 .bar .sub { color: var(--muted); font-size: 0.85em; }
@@ -14,13 +16,15 @@
   color: inherit;
   background: transparent;
   border: 1px solid var(--line);
-  border-radius: 0.4em;
+  border-radius: 0.6em;
   padding: 0.25em 0.6em;
   cursor: pointer;
 }
+.actions button:hover { background: var(--accent-soft); }
+.actions button { border-radius: 0.75em; box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 10%, transparent); }
 .sections { flex: 1; overflow-y: auto; padding: 0.4em 0.8em 0.8em; }
 .section { margin-top: 0.5em; }
-.section-head { width: 100%; text-align: left; border: none; padding: 0.3em 0; font-weight: 700; }
+.section-head { width: 100%; text-align: left; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0.7em; padding: 0.42em 0.65em; font-weight: 700; background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--sun-soft) 55%, var(--accent-soft))); box-shadow: 0 1px 4px color-mix(in srgb, var(--accent) 8%, transparent); }
 .section-body { padding: 0.2em 0 0.4em 1.2em; }
 .placeholder { color: var(--muted); margin: 0.2em 0; font-size: 0.9em; }
 .morning-quick .sub-head { font-size: 0.85em; color: var(--muted); margin: 0.5em 0 0.25em; }
@@ -35,8 +39,10 @@
   gap: 0.4em;
   margin-top: 0.5em;
   padding: 0.5em 0.6em;
-  border-radius: 0.5em;
+  border-radius: 0.8em;
   background: var(--accent-soft);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 8%, transparent);
   font-size: 0.9em;
 }
 .alert-controls.paused { background: color-mix(in srgb, var(--warn) 15%, transparent); }
@@ -46,7 +52,7 @@
   color: inherit;
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 0.4em;
+  border-radius: 0.6em;
   padding: 0.2em 0.6em;
   cursor: pointer;
 }
@@ -57,16 +63,16 @@
 .link { font: inherit; color: var(--accent); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; }
 
 .reminders { margin-top: 0.5em; display: flex; flex-direction: column; gap: 0.3em; }
-.reminder { background: var(--accent); color: #fff; border-radius: 0.5em; padding: 0.45em 0.6em; font-size: 0.95em; }
+.reminder { background: var(--sun-soft); color: var(--on-sun-soft); border: 1px solid var(--sun); border-radius: 0.8em; padding: 0.45em 0.6em; font-size: 0.95em; font-weight: 600; box-shadow: 0 2px 7px color-mix(in srgb, var(--sun) 25%, transparent); }
 
 .all-day { display: flex; flex-wrap: wrap; gap: 0.3em; margin-bottom: 0.4em; }
-.chip { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 0.1em 0.6em; font-size: 0.85em; font-weight: 600; }
+.chip { background: var(--sun-soft); color: var(--on-sun-soft); border: 1px solid var(--sun); border-radius: 999px; padding: 0.1em 0.6em; font-size: 0.85em; font-weight: 600; }
 .events { list-style: none; margin: 0; padding: 0; }
 .events li { display: flex; gap: 0.6em; padding: 0.2em 0; font-size: 0.92em; }
 .events .time { flex: none; min-width: 6.8em; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.9em; padding-top: 0.05em; }
 .events .loc { color: var(--muted); }
 .events li.past { opacity: 0.4; }
-.events li.ongoing { background: var(--accent-soft); border-radius: 0.4em; padding: 0.2em 0.4em; margin: 0 -0.4em; font-weight: 700; }
+.events li.ongoing { background: var(--accent-soft); border-radius: 0.6em; padding: 0.2em 0.4em; margin: 0 -0.4em; font-weight: 700; }
 .events li.ongoing .time { color: var(--accent); }
 .upcoming { margin-top: 0.6em; }
 .upcoming .day-label { font-size: 0.82em; font-weight: 700; margin-top: 0.4em; }
@@ -76,7 +82,7 @@
 .tasks li { display: flex; gap: 0.4em; align-items: baseline; padding: 0.15em 0; font-size: 0.92em; }
 .tasks .what { flex: 1; }
 .tasks .due { color: var(--muted); font-size: 0.85em; font-variant-numeric: tabular-nums; }
-.tasks .list { color: var(--muted); font-size: 0.75em; border: 1px solid var(--line); border-radius: 0.3em; padding: 0 0.3em; }
+.tasks .list { color: var(--muted); font-size: 0.75em; border: 1px solid var(--line); border-radius: 0.5em; padding: 0 0.3em; }
 .bucket-overdue .sub-head, .bucket-overdue .what, .bucket-overdue .due { color: var(--warn); }
 .bucket-today .sub-head { color: var(--accent); }
 .tasks .sub-head, .upcoming .sub-head { font-size: 0.8em; color: var(--muted); margin: 0.4em 0 0.15em; }

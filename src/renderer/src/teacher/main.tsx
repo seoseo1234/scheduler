@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import type { TeacherApi } from '@shared/api';
+import '@fontsource/jua';
 import '../common/widget.css';
 import './teacher.css';
 import { TeacherWidget } from './TeacherWidget';

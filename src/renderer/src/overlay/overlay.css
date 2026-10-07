@@ -3,19 +3,21 @@ html, body, #root { margin: 0; height: 100%; background: transparent; overflow: 
   height: 100%;
   display: grid;
   place-items: center;
-  background: rgba(10, 14, 24, 0.55);
-  font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+  background: rgba(31, 59, 82, 0.45);
+  font-family: 'Jua', 'Malgun Gothic', sans-serif;
+  font-synthesis-weight: none;
   cursor: pointer;
   user-select: none;
 }
 .card {
   width: min(80vw, 1200px);
   padding: 4vh 4vw;
-  border-radius: 32px;
-  background: #ffb020;
-  color: #2a1a00;
+  border-radius: 40px;
+  background: linear-gradient(160deg, #fff3c4 0%, #ffe59a 100%);
+  color: #5a4300;
+  border: 6px solid #b5e1f8;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 60px rgba(31, 59, 82, 0.25);
 }
 .icon { font-size: 10vh; line-height: 1; }
 .text {

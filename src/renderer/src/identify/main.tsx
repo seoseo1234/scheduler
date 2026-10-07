@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import '@fontsource/jua';
 import './identify.css';
 
 const params = new URLSearchParams(location.hash.slice(1));

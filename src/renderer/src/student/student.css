@@ -16,13 +16,14 @@
 
 .status {
   background: var(--accent-soft);
-  border-radius: 0.6em;
+  border: 1px solid var(--line);
+  border-radius: 0.9em;
   padding: 0.7em 0.9em;
 }
 .status .now { font-size: 1.5em; font-weight: 700; }
 .status .left { color: var(--accent); }
 .status .next { font-size: 1.1em; color: var(--muted); margin-top: 0.25em; }
-.status.calm { font-size: 1.3em; font-weight: 700; text-align: center; }
+.status.calm { font-size: 1.3em; font-weight: 700; text-align: center; word-break: keep-all; background: var(--sun-soft); border-color: var(--sun); }
 
 .timetable { list-style: none; margin: 0; padding: 0; overflow: hidden; }
 .timetable li {
@@ -34,9 +35,10 @@
 }
 .timetable li.past { opacity: 0.35; }
 .timetable li.current {
-  background: var(--accent);
-  color: #fff;
-  border-radius: 0.4em;
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  border-bottom-color: transparent;
+  border-radius: 0.7em;
   font-weight: 700;
 }
 .timetable .period { min-width: 4em; }
@@ -50,8 +52,8 @@
   width: 1.6em;
   height: 1.6em;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
+  background: var(--sun);
+  color: var(--on-sun);
   display: grid;
   place-items: center;
   font-size: 0.8em;
@@ -60,13 +62,13 @@
 
 /* 수업 알림 배너 */
 .banner {
-  border-radius: 0.6em;
+  border-radius: 0.9em;
   padding: 0.7em 0.9em;
   font-size: 1.35em;
   font-weight: 800;
   line-height: 1.35;
-  background: #ffb020;
-  color: #2a1a00;
+  background: var(--sun);
+  color: var(--on-sun);
   word-break: keep-all;
 }
-.banner-start { background: #22a55b; color: #fff; text-align: center; font-size: 1.6em; }
+.banner-start { background: var(--accent-fill); color: var(--on-accent); text-align: center; font-size: 1.6em; }

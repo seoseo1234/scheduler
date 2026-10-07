@@ -1,30 +1,48 @@
 :root {
   --scale: 1;
-  --bg: #ffffff;
-  --fg: #1d2129;
-  --muted: #7a8190;
-  --line: #e4e7ec;
-  --accent: #2f6fed;
-  --accent-soft: #e8f0ff;
-  --warn: #e5484d;
+  /* 하늘색 + 노란색 파스텔 */
+  --bg: #f7fbff;
+  --bg-grad: linear-gradient(165deg, #cfeafc 0%, #e6f5fe 50%, #fff0b8 100%);
+  --fg: #2d3a4a;
+  --muted: #6f849b;
+  --line: #bfe0f4;
+  --accent: #3d8fc9;
+  --accent-fill: #a6daf7;
+  --on-accent: #1f3b52;
+  --accent-soft: #d6eefc;
+  --sun: #ffe08a;
+  --sun-soft: #fff0bd;
+  --on-sun: #5a4300;
+  /* 연한 노란 배경(--sun-soft) 위 글자색 */
+  --on-sun-soft: #5a4300;
+  --warn: #e0636b;
   color-scheme: light;
 }
 :root[data-theme='dark'] {
-  --bg: #16181d;
-  --fg: #f1f3f6;
-  --muted: #8b93a3;
-  --line: #2b2f37;
-  --accent: #6ea0ff;
-  --accent-soft: #1f2c47;
-  --warn: #ff6b6f;
+  --bg: #1b2330;
+  --bg-grad: linear-gradient(165deg, #1d2838 0%, #1b2330 60%, #252519 100%);
+  --fg: #eef4fa;
+  --muted: #93a4b8;
+  --line: #2f3c4e;
+  --accent: #8fcdf2;
+  --accent-fill: #8fcdf2;
+  --on-accent: #12283a;
+  --accent-soft: #233548;
+  --sun: #f5d77a;
+  --sun-soft: #37321f;
+  --on-sun: #2d2400;
+  --on-sun-soft: #f7dd8c;
+  --warn: #ff9aa0;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {
-  background: var(--bg);
+  background: var(--bg-grad), var(--bg);
   color: var(--fg);
-  font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'Jua', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-synthesis-weight: none;
+  word-break: keep-all;
   font-size: calc(16px * var(--scale));
   overflow: hidden;
   user-select: none;

@@ -74,7 +74,7 @@ export class WindowManager {
       maximizable: false,
       fullscreenable: false,
       title: role === 'student' ? '우리반 시계 - 학생' : '우리반 시계 - 교사',
-      backgroundColor: display.theme === 'dark' ? '#16181d' : '#ffffff',
+      backgroundColor: display.theme === 'dark' ? '#1b2330' : '#f7fbff',
       webPreferences: {
         preload: preloadPath(role),
         contextIsolation: true,
@@ -189,11 +189,11 @@ export class WindowManager {
       // 모니터·레이어·잠금이 바뀌면 저장된 위치까지 다시 적용하고, 나머지는 모양만 바꾼다.
       if (a.monitorId !== b.monitorId || a.layer !== b.layer || a.locked !== b.locked) this.applyWidget(role);
       else this.applyAppearance(win, b);
-      if (a.theme !== b.theme) win.setBackgroundColor(b.theme === 'dark' ? '#16181d' : '#ffffff');
+      if (a.theme !== b.theme) win.setBackgroundColor(b.theme === 'dark' ? '#1b2330' : '#f7fbff');
     }
   }
 
-  private sendToSettings(channel: string, payload: unknown): void {
+  sendToSettings(channel: string, payload: unknown): void {
     if (this.settingsWin && !this.settingsWin.isDestroyed()) this.settingsWin.webContents.send(channel, payload);
   }
 

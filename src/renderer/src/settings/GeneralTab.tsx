@@ -1,6 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import type { SettingsApi } from '@shared/api';
-import type { AppInfo } from '@shared/ipc';
+import type { AppInfo, AppUpdateStatus } from '@shared/ipc';
 import type { Settings } from '@shared/types';
 
 interface Props {
@@ -112,6 +112,62 @@ export function GeneralTab({ api, settings, update, onSettings }: Props) {
         우리반 시계 {info ? `v${info.version}` : ''}
         {info?.edition === 'portable' ? ' (무설치판)' : info?.edition === 'dev' ? ' (개발 모드)' : ''}
       </p>
+      <UpdateSection api={api} />
     </section>
+  );
+}
+
+function updateText(status: AppUpdateStatus): string {
+  switch (status.state) {
+    case 'idle':
+      return '프로그램이 켜져 있으면 6시간마다 새 버전을 확인해요.';
+    case 'checking':
+      return '새 버전이 있는지 확인하는 중이에요…';
+    case 'latest':
+      return `최신 버전이에요. (${new Date(status.checkedAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })} 확인)`;
+    case 'downloading':
+      return `새 버전 v${status.version}을 받는 중이에요… ${status.percent}%`;
+    case 'downloaded':
+      return `새 버전 v${status.version}을 받아 두었어요. 프로그램을 끌 때 자동으로 설치돼요.`;
+    case 'manual':
+      return `새 버전 v${status.version}이 나왔어요. 홈페이지에서 내려받아 주세요.`;
+    case 'error':
+      return status.message;
+  }
+}
+
+function UpdateSection({ api }: { api: SettingsApi }) {
+  const [status, setStatus] = useState<AppUpdateStatus>({ state: 'idle' });
+
+  useEffect(() => {
+    const off = api.onUpdate(setStatus);
+    void api.updateStatus().then(setStatus);
+    return off;
+  }, [api]);
+
+  const busy = status.state === 'checking' || status.state === 'downloading';
+  return (
+    <>
+      <h3>업데이트</h3>
+      <p className={status.state === 'error' ? 'err-text' : 'hint'}>{updateText(status)}</p>
+      <div className="row">
+        {status.state === 'downloaded' ? (
+          <button className="primary" onClick={() => void api.installUpdate()}>
+            지금 설치하고 다시 시작
+          </button>
+        ) : status.state === 'manual' ? (
+          <button className="primary" onClick={() => void api.openDownloadPage()}>
+            홈페이지에서 내려받기
+          </button>
+        ) : (
+          <button onClick={() => void api.checkUpdate()} disabled={busy}>
+            업데이트 확인
+          </button>
+        )}
+        <button className="link" onClick={() => void api.openDownloadPage()}>
+          홈페이지 열기
+        </button>
+      </div>
+    </>
   );
 }

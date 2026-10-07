@@ -21,6 +21,11 @@ const SettingsChannel = {
   appInfo: 'settings:app-info',
   settingsChanged: 'settings:settings-changed',
   monitorsChanged: 'settings:monitors-changed',
+  updateStatus: 'settings:update-status',
+  checkUpdate: 'settings:check-update',
+  installUpdate: 'settings:install-update',
+  openDownloadPage: 'settings:open-download-page',
+  updateChanged: 'settings:update-changed',
 } as const satisfies typeof Channels;
 
 function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
@@ -46,6 +51,11 @@ const api: SettingsApi = {
   appInfo: () => ipcRenderer.invoke(SettingsChannel.appInfo),
   onSettings: (cb) => subscribe(SettingsChannel.settingsChanged, cb),
   onMonitors: (cb) => subscribe(SettingsChannel.monitorsChanged, cb),
+  updateStatus: () => ipcRenderer.invoke(SettingsChannel.updateStatus),
+  checkUpdate: () => ipcRenderer.invoke(SettingsChannel.checkUpdate),
+  installUpdate: () => ipcRenderer.invoke(SettingsChannel.installUpdate),
+  openDownloadPage: () => ipcRenderer.invoke(SettingsChannel.openDownloadPage),
+  onUpdate: (cb) => subscribe(SettingsChannel.updateChanged, cb),
 };
 
 contextBridge.exposeInMainWorld('api', api);

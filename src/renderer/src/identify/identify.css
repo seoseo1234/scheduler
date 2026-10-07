@@ -2,13 +2,15 @@ html, body, #root { margin: 0; height: 100%; background: transparent; overflow: 
 .identify {
   height: 100%;
   border-radius: 32px;
-  background: rgba(20, 24, 33, 0.85);
-  color: #fff;
+  background: rgba(181, 225, 248, 0.92);
+  border: 8px solid #ffe59a;
+  color: #1f3b52;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'Malgun Gothic', sans-serif;
+  font-family: 'Jua', 'Malgun Gothic', sans-serif;
+  font-synthesis-weight: none;
 }
 .n { font-size: 200px; font-weight: 800; line-height: 1; }
 .label { font-size: 28px; margin-top: 12px; }

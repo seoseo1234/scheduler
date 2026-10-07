@@ -37,6 +37,11 @@ export const SettingsChannel = {
   appInfo: 'settings:app-info',
   settingsChanged: 'settings:settings-changed',
   monitorsChanged: 'settings:monitors-changed',
+  updateStatus: 'settings:update-status',
+  checkUpdate: 'settings:check-update',
+  installUpdate: 'settings:install-update',
+  openDownloadPage: 'settings:open-download-page',
+  updateChanged: 'settings:update-changed',
 } as const;
 
 /** 1분 전 알림 오버레이 창. 문구만 받는다. */
@@ -52,6 +57,21 @@ export interface AppInfo {
   /** 자동 실행을 실제로 설정할 수 있는지 (개발 실행에서는 불가) */
   canAutoLaunch: boolean;
 }
+
+/**
+ * 프로그램 업데이트 상태.
+ * 설치형은 새 버전을 자동으로 내려받아 두고, 무설치판·개발 실행은 홈페이지로 안내한다.
+ */
+export type AppUpdateStatus =
+  | { state: 'idle' }
+  | { state: 'checking' }
+  | { state: 'latest'; checkedAt: string }
+  | { state: 'downloading'; version: string; percent: number }
+  /** 설치형: 다 받았고, 다시 시작하면(또는 종료할 때) 설치된다. */
+  | { state: 'downloaded'; version: string }
+  /** 무설치판·개발 실행: 자동 설치가 안 되니 홈페이지에서 받아야 한다. */
+  | { state: 'manual'; version: string }
+  | { state: 'error'; message: string };
 
 /** settings:update 결과 */
 export type UpdateResult<T> = { ok: true; settings: T } | { ok: false; message: string; details?: unknown };

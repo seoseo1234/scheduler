@@ -1,5 +1,5 @@
 import { app, globalShortcut } from 'electron';
-import { TeacherChannel } from '@shared/ipc';
+import { SettingsChannel, TeacherChannel } from '@shared/ipc';
 import { AlertService } from './alerts';
 import { registerAutoLaunch } from './autoLaunch';
 import { GoogleService } from './google';
@@ -8,6 +8,7 @@ import { registerIpc } from './ipc';
 import { defaultMonitors, findDisplay } from './monitors';
 import { SettingsStore } from './store';
 import { createTray } from './tray';
+import { UpdateService } from './updater';
 import { WindowManager } from './windows';
 
 // 중복 실행 방지: 두 번째 실행은 기존 프로그램의 설정 창을 연다.
@@ -46,13 +47,16 @@ if (!app.requestSingleInstanceLock()) {
     const alerts = new AlertService(store, windows);
     const google = new GoogleService(store);
     google.on('change', (snapshot) => windows?.sendToTeacher(TeacherChannel.googleChanged, snapshot));
-    registerIpc(store, windows, alerts, google);
+    const updates = new UpdateService(() => windows?.openSettings());
+    updates.on('change', (status) => windows?.sendToSettings(SettingsChannel.updateChanged, status));
+    registerIpc(store, windows, alerts, google, updates);
     windows.createWidgets();
-    createTray(store, windows, alerts);
+    createTray(store, windows, alerts, updates);
     registerShortcuts(store, () => windows?.sendToTeacher(TeacherChannel.toggleCover));
     registerAutoLaunch(store);
     alerts.start();
     google.start();
+    updates.start();
 
     // 교사 모니터가 없어 교사 위젯이 숨겨진 상태라면 설정 창을 열어 알려준다.
     if (!findDisplay(store.get().display.teacher.monitorId)) windows.openSettings();
