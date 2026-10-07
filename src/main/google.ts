@@ -47,7 +47,8 @@ export class GoogleService extends EventEmitter<{ change: [GoogleSnapshot] }> {
   }
 
   info(): GoogleInfo {
-    return { hasToken: !!this.secrets.get('token'), status: this.status, lists: taskListNames(this.cache.get('data')?.tasks ?? []) };
+    // 다른 PC에서 복사해 온 설정처럼 풀 수 없는 토큰은 없는 것으로 본다.
+    return { hasToken: this.getToken() !== null, status: this.status, lists: taskListNames(this.cache.get('data')?.tasks ?? []) };
   }
 
   setToken(token: string): void {

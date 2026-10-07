@@ -23,10 +23,21 @@
 .actions button:hover { background: var(--accent-soft); }
 .actions button { border-radius: 0.75em; box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 10%, transparent); }
 .sections { flex: 1; overflow-y: auto; padding: 0.4em 0.8em 0.8em; }
-.section { margin-top: 0.5em; }
-.section-head { width: 100%; text-align: left; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0.7em; padding: 0.42em 0.65em; font-weight: 700; background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--sun-soft) 55%, var(--accent-soft))); box-shadow: 0 1px 4px color-mix(in srgb, var(--accent) 8%, transparent); }
-.section-body { padding: 0.2em 0 0.4em 1.2em; }
+/* 섹션: 반투명 흰 카드. 머리는 카드 안에 들어간 제목 줄 */
+.section {
+  margin-top: 0.6em;
+  border: 1px solid var(--line);
+  border-radius: 0.9em;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 8%, transparent);
+  overflow: hidden;
+}
+.section-head { display: flex; align-items: center; gap: 0.4em; width: 100%; text-align: left; border: none; border-radius: 0; padding: 0.5em 0.75em; font-size: 1.05em; }
+.section-head:hover { background: var(--accent-soft); }
+.section-head .chevron { color: var(--accent); font-size: 0.85em; }
+.section-body { padding: 0.1em 0.75em 0.7em; }
 .placeholder { color: var(--muted); margin: 0.2em 0; font-size: 0.9em; }
+.placeholder.empty-day { padding: 0.5em 0.7em; border-radius: 0.6em; background: var(--accent-soft); color: var(--fg); }
 .morning-quick .sub-head { font-size: 0.85em; color: var(--muted); margin: 0.5em 0 0.25em; }
 .morning-quick .sub-head:first-child { margin-top: 0; }
 .cover { flex: 1; display: grid; place-items: center; color: var(--muted); }
@@ -74,9 +85,21 @@
 .events li.past { opacity: 0.4; }
 .events li.ongoing { background: var(--accent-soft); border-radius: 0.6em; padding: 0.2em 0.4em; margin: 0 -0.4em; font-weight: 700; }
 .events li.ongoing .time { color: var(--accent); }
-.upcoming { margin-top: 0.6em; }
-.upcoming .day-label { font-size: 0.82em; font-weight: 700; margin-top: 0.4em; }
-.upcoming .events li { font-size: 0.85em; }
+/* 다가오는 일정: 날짜마다 작은 상자, 시간·종일은 이름 앞의 태그로 */
+.upcoming { margin-top: 0.7em; }
+.upcoming .day { margin-top: 0.35em; padding: 0.45em 0.65em; border-radius: 0.7em; background: var(--accent-soft); }
+.upcoming .day-label { margin-bottom: 0.2em; font-size: 0.82em; color: var(--accent); }
+.upcoming .events li { align-items: center; gap: 0.45em; padding: 0.12em 0; font-size: 0.9em; }
+.tag {
+  flex: none;
+  padding: 0.05em 0.55em;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.78em;
+  font-variant-numeric: tabular-nums;
+}
+.tag.all-day-tag { border: 1px solid var(--sun); background: var(--sun-soft); color: var(--on-sun-soft); }
 
 .tasks ul { list-style: none; margin: 0; padding: 0; }
 .tasks li { display: flex; gap: 0.4em; align-items: baseline; padding: 0.15em 0; font-size: 0.92em; }
@@ -86,3 +109,4 @@
 .bucket-overdue .sub-head, .bucket-overdue .what, .bucket-overdue .due { color: var(--warn); }
 .bucket-today .sub-head { color: var(--accent); }
 .tasks .sub-head, .upcoming .sub-head { font-size: 0.8em; color: var(--muted); margin: 0.4em 0 0.15em; }
+.upcoming .sub-head { margin-bottom: 0; }

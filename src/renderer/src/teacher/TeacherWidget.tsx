@@ -99,7 +99,8 @@ function Section({ id, title, children }: { id: string; title: string; children:
   return (
     <section className="section">
       <button className="section-head" onClick={toggle}>
-        <span>{open ? '▾' : '▸'}</span> {title}
+        <span className="chevron">{open ? '▾' : '▸'}</span>
+        {title}
       </button>
       {open && <div className="section-body">{children}</div>}
     </section>
@@ -194,7 +195,7 @@ function Events(props: { snapshot: GoogleSnapshot | null; settings: TeacherSetti
         </div>
       )}
       {empty ? (
-        <p className="placeholder">오늘 일정이 없어요.</p>
+        <p className="placeholder empty-day">오늘 일정이 없어요. ☀️</p>
       ) : (
         <ul className="events">
           {view.todayTimed.map((t: TodayEvent) => (
@@ -217,13 +218,13 @@ function Events(props: { snapshot: GoogleSnapshot | null; settings: TeacherSetti
               <ul className="events">
                 {g.allDay.map((e) => (
                   <li key={e.id}>
-                    <span className="time">종일</span>
+                    <span className="tag all-day-tag">종일</span>
                     <span className="what">{e.title}</span>
                   </li>
                 ))}
                 {g.timed.map((e) => (
                   <li key={e.id}>
-                    <span className="time">{formatKoreanTime(eventStart(e))}</span>
+                    <span className="tag">{formatKoreanTime(eventStart(e))}</span>
                     <span className="what">
                       {e.title}
                       {e.location && <span className="loc"> · {e.location}</span>}

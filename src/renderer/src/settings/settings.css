@@ -212,3 +212,9 @@ table.offsets input[type='number'] { width: 4.5em; margin-right: 4px; }
 .widget-card-body label.check { flex-direction: row; align-items: center; gap: 8px; font-size: 15px; }
 .widget-card-body label.check input { width: 20px; height: 20px; margin: 0; accent-color: var(--slider); }
 .widget-card-body label.check .icon { width: 20px; height: 20px; }
+.token-box { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.token-box .row { margin: 0; }
+.token-state { margin: 0; color: var(--muted); }
+.token-state.saved { color: var(--accent); }
+.manual-token summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.manual-token .row { margin-top: 8px; }

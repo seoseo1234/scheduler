@@ -43,9 +43,28 @@ export function GoogleTab({ api, settings, update }: Props) {
 
   const set = (patch: Partial<GoogleSettings>) => setDraft((d) => ({ ...d, ...patch }));
 
+  /** 방금 만든 토큰. 복사할 수 있게 이 화면에서만 보여준다 (저장된 값은 다시 꺼내 볼 수 없다). */
+  const [shownToken, setShownToken] = useState('');
+
   const saveToken = async () => {
     setInfo(await api.googleSetToken(token));
     setToken('');
+    setShownToken('');
+  };
+
+  const createToken = async () => {
+    if (info?.hasToken && !confirm('저장된 토큰을 새 토큰으로 바꿀까요? 구글 스크립트 속성의 TOKEN 값도 새 토큰으로 바꿔야 연결돼요.')) return;
+    const next = generateToken();
+    setInfo(await api.googleSetToken(next));
+    setShownToken(next);
+    setTest(null);
+  };
+
+  const deleteToken = async () => {
+    if (!confirm('이 PC에 저장된 토큰을 지울까요? 지우면 구글 연동이 멈춰요.')) return;
+    setInfo(await api.googleSetToken(''));
+    setShownToken('');
+    setTest(null);
   };
 
   const runTest = async () => {
@@ -87,34 +106,48 @@ export function GoogleTab({ api, settings, update }: Props) {
           <b>Tasks API 추가</b> — 왼쪽 "서비스" 옆 <b>+</b> → <b>Google Tasks API</b> 선택 → 추가.
         </li>
         <li>
-          <b>토큰 등록</b> — 아래에서 토큰을 만들어 복사한 뒤, 왼쪽 톱니바퀴(프로젝트 설정) → 스크립트 속성 → 속성 추가 → 이름{' '}
-          <code>TOKEN</code>, 값에 붙여넣기 → 저장.
-          <div className="row">
-            <input
-              className="token"
-              value={token}
-              placeholder={info?.hasToken ? '저장된 토큰이 있어요 (바꾸려면 새로 입력)' : '토큰'}
-              onChange={(e) => setToken(e.target.value)}
-              spellCheck={false}
-            />
-            <button onClick={() => setToken(generateToken())}>무작위 생성</button>
-            <button disabled={!token} onClick={() => void copy('token', token)}>
-              {copied === 'token' ? '복사했어요 ✓' : '복사'}
-            </button>
-            <button className="primary" disabled={!token} onClick={() => void saveToken()}>
-              토큰 저장
-            </button>
-          </div>
-          <p className="hint">
-            {info?.hasToken ? '✓ 토큰이 이 PC에 암호화되어 저장되어 있어요.' : '아직 저장된 토큰이 없어요.'}
-            {info?.hasToken && (
-              <>
-                {' '}
-                <button className="link" onClick={() => void api.googleSetToken('').then(setInfo)}>
+          <b>토큰 등록</b> — <b>새 토큰 만들기</b>를 누르면 이 PC에 바로 저장돼요(전에 저장한 토큰은 바뀌어요). <b>복사</b>한 뒤 왼쪽
+          톱니바퀴(프로젝트 설정) → 스크립트 속성에 이름 <code>TOKEN</code>, 값에 붙여넣고 저장해요.
+          <div className="token-box">
+            <p className={info?.hasToken ? 'token-state saved' : 'token-state'}>
+              {info?.hasToken ? '✓ 이 PC에 토큰이 저장되어 있어요.' : '아직 저장된 토큰이 없어요.'}
+            </p>
+            <div className="row">
+              <button className="primary" onClick={() => void createToken()}>
+                새 토큰 만들기
+              </button>
+              {info?.hasToken && (
+                <button className="danger" onClick={() => void deleteToken()}>
                   토큰 지우기
                 </button>
-              </>
+              )}
+            </div>
+            {shownToken && (
+              <div className="row">
+                <input className="token" value={shownToken} readOnly spellCheck={false} onFocus={(e) => e.target.select()} />
+                <button onClick={() => void copy('token', shownToken)}>{copied === 'token' ? '복사했어요 ✓' : '복사'}</button>
+              </div>
             )}
+            {shownToken && <p className="hint small">이 값은 지금만 보여요. 창을 닫기 전에 복사해서 스크립트 속성에 붙여넣으세요.</p>}
+            <details className="manual-token">
+              <summary>다른 PC에서 쓰던 토큰 직접 입력하기</summary>
+              <div className="row">
+                <input
+                  className="token"
+                  value={token}
+                  placeholder="토큰 붙여넣기"
+                  onChange={(e) => setToken(e.target.value)}
+                  spellCheck={false}
+                />
+                <button disabled={!token.trim()} onClick={() => void saveToken()}>
+                  저장
+                </button>
+              </div>
+            </details>
+          </div>
+          <p className="hint">
+            스크립트 속성에 <code>TOKEN</code>이 이미 있으면 "속성 추가"를 하지 말고, <b>스크립트 속성 수정</b>을 눌러 기존{' '}
+            <code>TOKEN</code>의 값을 새 토큰으로 바꾼 뒤 저장하세요. 지우려면 그 줄 오른쪽의 휴지통 아이콘을 누르면 돼요.
           </p>
         </li>
         <li>
