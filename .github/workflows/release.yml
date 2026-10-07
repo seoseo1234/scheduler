@@ -32,6 +32,10 @@ jobs:
             exit 1
           fi
 
+      # 일정 테스트는 한국 시간을 기준으로 짜여 있다. (러너 기본값은 UTC)
+      - name: Use Korea time zone
+        run: tzutil /s "Korea Standard Time"
+
       - run: npm test
 
       - run: npm run release

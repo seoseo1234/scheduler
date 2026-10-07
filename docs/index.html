@@ -255,8 +255,10 @@
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((rel) => {
         const date = new Date(rel.published_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-        document.getElementById('version').innerHTML =
-          '최신 버전 <b>' + rel.tag_name.replace(/^v/, 'v') + '</b> · ' + date + ' · Windows 10 · 11 · 무료';
+        const el = document.getElementById('version');
+        const b = document.createElement('b');
+        b.textContent = rel.tag_name;
+        el.replaceChildren('최신 버전 ', b, ' · ' + date + ' · Windows 10 · 11 · 무료');
       })
       .catch(() => {});
   </script>

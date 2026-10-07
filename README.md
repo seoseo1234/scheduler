@@ -9,12 +9,16 @@
 
 ## 설치
 
-`dist` 폴더의 파일 중 하나를 쓰세요.
+[홈페이지](https://seoseo1234.github.io/scheduler/)나 [GitHub 릴리스](https://github.com/seoseo1234/scheduler/releases/latest)에서 내려받으세요.
 
 | 파일 | 설명 |
 |---|---|
-| `ClassroomClock-Setup-<버전>.exe` | 설치형. 관리자 권한 없이 내 계정에 설치되고 시작 메뉴·바탕화면 바로가기가 생깁니다. |
-| `ClassroomClock-<버전>-portable.exe` | 무설치형. 원하는 폴더에 두고 바로 실행합니다. |
+| `ClassroomClock-Setup.exe` | 설치형. 관리자 권한 없이 내 계정에 설치되고 시작 메뉴·바탕화면 바로가기가 생깁니다. 새 버전을 자동으로 받아 두었다가 프로그램을 끌 때 설치합니다. |
+| `ClassroomClock-portable.exe` | 무설치형. 원하는 폴더에 두고 바로 실행합니다. 새 버전이 나오면 알려 주니 홈페이지에서 다시 받으세요. |
+
+### 새 버전 내기
+
+`package.json`의 `version`을 올리고 같은 이름의 태그(예: `v0.2.0`)를 올리면, GitHub Actions가 설치 파일을 만들어 릴리스에 올립니다. 설치된 프로그램은 이 릴리스를 보고 업데이트합니다.
 
 > **"Windows의 PC 보호" 경고가 뜨면**: 코드 서명 인증서가 없는 프로그램이라 SmartScreen 경고가 나올 수 있습니다.
 > **추가 정보 → 실행**을 누르면 설치됩니다. 학교 PC 보안 정책상 실행이 막히면 정보 담당 선생님께 허용을 요청하세요.
