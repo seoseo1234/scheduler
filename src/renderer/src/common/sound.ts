@@ -44,7 +44,12 @@ const BAR: [number, number][] = [
   [4, 0.12],
 ];
 
-const PRESETS: Record<'dingdong' | 'chime' | 'xylophone', { notes: Note[]; partials: [number, number][] }> = {
+const PRESETS: Record<'dingdong' | 'chime' | 'xylophone' | 'hurry', { notes: Note[]; partials: [number, number][] }> = {
+  // 빠른 종 (띵띵띵 ×2): 1분 전처럼 서둘러야 할 때. 딩동과 확실히 다르게 높고 짧다.
+  hurry: {
+    partials: BELL,
+    notes: [0, 0.16, 0.32, 0.75, 0.91, 1.07].map((at) => ({ freq: 1318.5, at, decay: 0.35 })),
+  },
   // 딩-동
   dingdong: {
     partials: BELL,

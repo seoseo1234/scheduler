@@ -79,7 +79,7 @@ export function createDefaultSettings(): Settings {
         overlay: '{남은분}분 뒤 {교시}가 시작돼요! 자리에 앉아요.',
         start: '{교시} {과목} 시작!',
       },
-      sound: { preset: 'dingdong', file: '', volume: 0.8, muted: false },
+      sound: { preset: 'dingdong', overlayPreset: 'hurry', file: '', volume: 0.8, muted: false },
       pausedUntil: null,
     },
     google: { webAppUrl: '', refreshMinutes: 5, days: 7, lists: [], eventReminderMinutes: 10 },

@@ -17,7 +17,14 @@ const PRESETS: { value: SoundPreset; label: string }[] = [
   { value: 'dingdong', label: '딩동' },
   { value: 'chime', label: '차임' },
   { value: 'xylophone', label: '실로폰' },
+  { value: 'hurry', label: '빠른 종 (띵띵띵)' },
   { value: 'custom', label: '내 소리 파일' },
+];
+
+type SoundKey = 'preset' | 'overlayPreset';
+const SOUND_FIELDS: { key: SoundKey; label: string }[] = [
+  { key: 'preset', label: '배너 알림 소리 (예: 3분 전)' },
+  { key: 'overlayPreset', label: '전체 화면 알림 소리 (예: 1분 전)' },
 ];
 
 const TEMPLATE_FIELDS: { key: AlertKind; label: string; minutes: number }[] = [
@@ -37,15 +44,18 @@ export function AlertsTab({ api, settings, update }: Props) {
     setDraft((d) => ({ ...d, offsets: d.offsets.map((o) => (o.id === id ? { ...o, ...patch } : o)) }));
   const setSound = (patch: Partial<AlertSettings['sound']>) => setDraft((d) => ({ ...d, sound: { ...d.sound, ...patch } }));
 
+  const usesCustomFile = draft.sound.preset === 'custom' || draft.sound.overlayPreset === 'custom';
+  const sameSound = draft.sound.preset === draft.sound.overlayPreset;
   const badOffset = draft.offsets.find((o) => !Number.isInteger(o.minutes) || o.minutes < 1 || o.minutes > 60);
   const blockedReason = badOffset
     ? '알림 시점은 1~60분 사이로 입력하세요.'
-    : draft.sound.preset === 'custom' && !draft.sound.file
+    : usesCustomFile && !draft.sound.file
       ? '알림음 파일을 선택하세요.'
       : null;
 
-  const testSound = async () => {
-    const { preset, file, volume } = draft.sound;
+  const testSound = async (key: SoundKey) => {
+    const { file, volume } = draft.sound;
+    const preset = draft.sound[key];
     if (preset === 'custom') {
       const data = await api.readSoundFile(file);
       if (!data) return alert('소리 파일을 읽을 수 없어요.');
@@ -56,7 +66,7 @@ export function AlertsTab({ api, settings, update }: Props) {
 
   const pickFile = async () => {
     const path = await api.pickSoundFile();
-    if (path) setSound({ preset: 'custom', file: path });
+    if (path) setSound({ file: path });
   };
 
   return (
@@ -154,17 +164,26 @@ export function AlertsTab({ api, settings, update }: Props) {
       ))}
 
       <h3>알림음</h3>
+      <p className="hint">아이들이 헷갈리지 않게 배너 알림과 전체 화면 알림의 소리를 다르게 고를 수 있어요.</p>
       <div className="field-row">
-        <label>
-          소리
-          <select value={draft.sound.preset} onChange={(e) => setSound({ preset: e.target.value as SoundPreset })}>
-            {PRESETS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        {SOUND_FIELDS.map(({ key, label }) => (
+          <label key={key}>
+            {label}
+            <span className="row sound-pick">
+              <select value={draft.sound[key]} onChange={(e) => setSound({ [key]: e.target.value as SoundPreset })}>
+                {PRESETS.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <button onClick={() => void testSound(key)}>듣기</button>
+            </span>
+          </label>
+        ))}
+      </div>
+      {sameSound && <div className="warn">두 알림이 같은 소리예요. 다르게 고르면 아이들이 몇 분 전인지 소리로 구분할 수 있어요.</div>}
+      <div className="field-row">
         <label>
           볼륨 {Math.round(draft.sound.volume * 100)}%
           <input
@@ -181,15 +200,12 @@ export function AlertsTab({ api, settings, update }: Props) {
           음소거
         </label>
       </div>
-      {draft.sound.preset === 'custom' && (
+      {usesCustomFile && (
         <div className="row">
           <button onClick={() => void pickFile()}>파일 선택…</button>
           <span className="hint file-path">{draft.sound.file || '선택한 파일 없음 (mp3, wav)'}</span>
         </div>
       )}
-      <div className="row">
-        <button onClick={() => void testSound()}>소리 듣기</button>
-      </div>
 
       <h3>알림 미리보기</h3>
       <p className="hint">저장된 설정으로 학생 모니터에 알림을 띄워 봐요. (일시정지 중에도 동작)</p>

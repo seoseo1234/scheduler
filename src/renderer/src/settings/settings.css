@@ -218,3 +218,4 @@ table.offsets input[type='number'] { width: 4.5em; margin-right: 4px; }
 .token-state.saved { color: var(--accent); }
 .manual-token summary { cursor: pointer; color: var(--muted); font-size: 13px; }
 .manual-token .row { margin-top: 8px; }
+.field-row .sound-pick { margin: 0; gap: 6px; }

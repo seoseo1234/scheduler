@@ -61,14 +61,16 @@ export class AlertService {
       const banner: BannerPayload = { kind: e.kind, text: e.text, until: e.until.toISOString() };
       this.windows.sendToStudent(StudentChannel.alert, banner);
     }
-    if (e.sound) void this.playSound();
+    if (e.sound) void this.playSound(e.kind);
   }
 
-  private async playSound(): Promise<void> {
+  private async playSound(kind: AlertKind): Promise<void> {
     const { sound } = this.store.get().alerts;
     if (sound.muted) return;
-    const payload: SoundPayload = { preset: sound.preset, volume: sound.volume };
-    if (sound.preset === 'custom') {
+    // 전체 화면 알림(1분 전)은 배너(3분 전)와 다른 소리로 울린다.
+    const preset = kind === 'overlay' ? sound.overlayPreset : sound.preset;
+    const payload: SoundPayload = { preset, volume: sound.volume };
+    if (preset === 'custom') {
       try {
         payload.data = new Uint8Array(await readFile(sound.file));
       } catch (err) {

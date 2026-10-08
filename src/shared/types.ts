@@ -43,7 +43,7 @@ export interface AlertOffset {
   enabled: boolean;
 }
 
-export type SoundPreset = 'dingdong' | 'chime' | 'xylophone' | 'custom';
+export type SoundPreset = 'dingdong' | 'chime' | 'xylophone' | 'hurry' | 'custom';
 
 export interface AlertSettings {
   offsets: AlertOffset[];
@@ -52,7 +52,11 @@ export interface AlertSettings {
   startBannerSeconds: number;
   /** 키: banner | overlay | start. 변수: {교시} {과목} {준비물} {남은분} */
   templates: Record<'banner' | 'overlay' | 'start', string>;
-  sound: { preset: SoundPreset; file: string; volume: number; muted: boolean };
+  /**
+   * preset은 배너 알림(기본 3분 전) 소리, overlayPreset은 전체 화면 알림(기본 1분 전) 소리.
+   * 아이들이 두 알림을 구분할 수 있게 따로 고른다. 내 소리 파일(file)은 둘이 함께 쓴다.
+   */
+  sound: { preset: SoundPreset; overlayPreset: SoundPreset; file: string; volume: number; muted: boolean };
   /** ISO 시각. 이 시각 전까지 알림을 울리지 않는다. */
   pausedUntil: string | null;
 }

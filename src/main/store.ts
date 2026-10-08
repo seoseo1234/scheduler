@@ -56,7 +56,8 @@ function assertValid(settings: Settings): void {
     throw new SettingsError('전체 화면 알림 표시 시간은 1~120초 사이여야 해요.');
   if (!(alerts.startBannerSeconds >= 1 && alerts.startBannerSeconds <= 120))
     throw new SettingsError('수업 시작 배너 표시 시간은 1~120초 사이여야 해요.');
-  if (alerts.sound.preset === 'custom' && !alerts.sound.file) throw new SettingsError('알림음 파일을 선택하세요.');
+  if ((alerts.sound.preset === 'custom' || alerts.sound.overlayPreset === 'custom') && !alerts.sound.file)
+    throw new SettingsError('알림음 파일을 선택하세요.');
 
   const { google } = settings;
   if (!(google.refreshMinutes >= 1 && google.refreshMinutes <= 120)) throw new SettingsError('자동 새로고침은 1~120분 사이여야 해요.');
