@@ -1,7 +1,7 @@
 {
   "name": "classroom-clock",
   "productName": "우리반 시계",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "교실 듀얼 모니터용 일정 안내 위젯",
   "main": "./out/main/index.js",
   "private": true,
