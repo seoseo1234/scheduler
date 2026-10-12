@@ -23,3 +23,25 @@
   flex: none;
 }
 .task-editor button:disabled { opacity: 0.35; cursor: default; }
+
+/* 이모지 고르기 */
+.task-editor .emoji-picker { position: relative; flex: none; }
+.task-editor .emoji-button { width: 2.4em; padding: 3px 0; font-size: 1.05em; text-align: center; }
+.emoji-none { opacity: 0.35; }
+.emoji-pop {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 17.5em;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel, var(--bg));
+  box-shadow: 0 8px 22px rgba(31, 59, 82, 0.2);
+}
+.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+.task-editor .emoji-grid button { padding: 4px 0; border: none; border-radius: 8px; font-size: 1.15em; background: transparent; }
+.task-editor .emoji-grid button:hover, .task-editor .emoji-grid button.on { background: var(--accent-soft); }
+.emoji-foot { display: flex; gap: 4px; margin-top: 6px; }
+.task-editor .emoji-foot input { flex: 1; min-width: 0; }

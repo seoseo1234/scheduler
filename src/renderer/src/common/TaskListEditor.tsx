@@ -1,5 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import type { TaskItem } from '@shared/types';
+import { EmojiPicker, suggestEmoji } from './EmojiPicker';
 import { newId } from './id';
 import './editor.css';
 
@@ -38,7 +39,8 @@ export function TaskListEditor({ items, onChange, placeholder = '할 일을 입�
   const add = () => {
     const text = draft.trim();
     if (!text) return;
-    commit([...local, { id: newId('mt'), text }]);
+    // 할 일 내용에 맞는 이모지를 붙여 준다 (나중에 눌러서 바꿀 수 있다).
+    commit([...local, { id: newId('mt'), text, icon: suggestEmoji(text) }]);
     setDraft('');
   };
   const onEnter = (e: KeyboardEvent<HTMLInputElement>, fn: () => void) => {
@@ -50,15 +52,7 @@ export function TaskListEditor({ items, onChange, placeholder = '할 일을 입�
       <ol>
         {local.map((t, i) => (
           <li key={t.id}>
-            <input
-              className="icon"
-              value={t.icon ?? ''}
-              placeholder="🙂"
-              maxLength={4}
-              title="이모지 (선택)"
-              onChange={(e) => patchLocal(i, { icon: e.target.value || undefined })}
-              onBlur={commitIfChanged}
-            />
+            <EmojiPicker value={t.icon} onPick={(icon) => commit(local.map((x, j) => (j === i ? { ...x, icon } : x)))} />
             <input
               className="text"
               value={t.text}
