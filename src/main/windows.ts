@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { BrowserWindow, Menu, screen, shell, type BrowserWindowConstructorOptions } from 'electron';
+import { BrowserWindow, screen, shell, type BrowserWindowConstructorOptions } from 'electron';
 import { OverlayChannel, SettingsChannel, StudentChannel, TeacherChannel, type OverlayPayload } from '@shared/ipc';
 import type { Settings, StudentSettings, WidgetDisplay, WidgetRole } from '@shared/types';
 import { attachToDesktop, desktopMode, detachFromDesktop, setDesktopBounds } from './desktopLayer';
@@ -89,15 +89,6 @@ export class WindowManager {
     this.onHiddenChange?.(role, hidden, fromWidget);
   }
 
-  /** 위젯 오른쪽 클릭 메뉴. 윈도우 기본 메뉴(닫기 등) 대신 띄운다. */
-  private popupWidgetMenu(role: WidgetRole, win: BrowserWindow): void {
-    Menu.buildFromTemplate([
-      { label: role === 'student' ? '학생 위젯 숨기기' : '교사 위젯 숨기기', click: () => this.setHidden(role, true, true) },
-      { type: 'separator' },
-      { label: '설정 열기', click: () => this.openSettings() },
-    ]).popup({ window: win });
-  }
-
   private createWidget(role: WidgetRole): void {
     const display = this.store.get().display[role];
     const options: BrowserWindowConstructorOptions = {
@@ -130,12 +121,18 @@ export class WindowManager {
     };
     win.on('moved', scheduleSave);
     win.on('resized', scheduleSave);
-    // 잠금을 풀면 창 전체가 끌기 영역이라 오른쪽 클릭에 윈도우 기본 메뉴가 뜬다. 우리 메뉴로 바꾼다.
-    win.on('system-context-menu', (e) => {
+    // 오른쪽 클릭 메뉴는 위젯 화면 안에 직접 그린다. 포커스를 받지 않는 위젯 창에서는
+    // 운영체제 팝업 메뉴(Menu.popup)가 뜨지 않는 경우가 있어서다.
+    // 잠금을 풀면 창 전체가 끌기 영역이라 오른쪽 클릭이 화면까지 오지 않고 윈도우 기본 메뉴(닫기 등)가 뜬다.
+    // 그 메뉴를 막고, 누른 위치를 화면에 보내 같은 메뉴를 띄운다.
+    win.on('system-context-menu', (e, point) => {
       e.preventDefault();
-      this.popupWidgetMenu(role, win);
+      const content = win.getContentBounds();
+      win.webContents.send(role === 'student' ? StudentChannel.showMenu : TeacherChannel.showMenu, {
+        x: point.x - content.x,
+        y: point.y - content.y,
+      });
     });
-    win.webContents.on('context-menu', () => this.popupWidgetMenu(role, win));
     // Alt+F4 등으로 닫으면 없애지 않고 숨긴다 (트레이에서 다시 보이게 할 수 있다).
     win.on('session-end', () => (this.quitting = true));
     win.on('close', (e) => {

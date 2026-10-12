@@ -6,6 +6,8 @@ export const StudentChannel = {
   settingsChanged: 'student:settings-changed',
   alert: 'student:alert',
   playSound: 'student:play-sound',
+  showMenu: 'student:show-menu',
+  menuAction: 'student:menu-action',
 } as const;
 
 export const TeacherChannel = {
@@ -17,6 +19,9 @@ export const TeacherChannel = {
   getGoogle: 'teacher:get-google',
   refreshGoogle: 'teacher:refresh-google',
   googleChanged: 'teacher:google-changed',
+  taskAction: 'teacher:task-action',
+  showMenu: 'teacher:show-menu',
+  menuAction: 'teacher:menu-action',
   toggleCover: 'teacher:toggle-cover',
 } as const;
 
@@ -99,6 +104,21 @@ export interface OverlayPayload {
 }
 
 export type PauseMode = 'today' | 'hour' | 'off';
+
+/** 위젯 오른쪽 클릭 메뉴 */
+export type WidgetMenuAction = 'hide' | 'settings';
+/** 메뉴를 띄울 위치 (창 안 좌표) */
+export interface MenuPoint {
+  x: number;
+  y: number;
+}
+
+/** 교사 위젯에서 구글 할 일을 바꾸는 요청 */
+export type TaskAction =
+  | { action: 'complete' | 'delete'; listId: string; taskId: string }
+  | { action: 'update'; listId: string; taskId: string; title: string; due: string | null; notes: string };
+
+export type TaskActionResult = { ok: true } | { ok: false; message: string };
 
 export interface ConnectionTestResult {
   ok: boolean;

@@ -20,6 +20,7 @@ import { useApiSettings } from '../common/useApiSettings';
 import { useNow } from '../common/useNow';
 import { playSound } from '../common/sound';
 import { useWidgetDisplay } from '../common/widget';
+import { WidgetMenu } from '../common/WidgetMenu';
 import raysArt from '../assets/rays.webp';
 import sceneArt from '../assets/scene.webp';
 import sunArt from '../assets/sun.webp';
@@ -39,21 +40,24 @@ export function StudentWidget({ api }: { api: StudentApi }) {
   const morning = state.phase === 'inBlock' && state.current.kind === 'morning';
 
   return (
-    <div className="student drag">
-      <img className="sky-sun" src={sunArt} alt="" />
-      {banner && <div className={`banner banner-${banner.kind}`}>{banner.text}</div>}
-      <header className="clock">
-        <div className="time">
-          {formatKoreanTime(now)}
-          <img className="sky-rays" src={raysArt} alt="" />
-        </div>
-        <div className="date">{formatKoreanDate(now)}</div>
-      </header>
-      <StatusLine state={state} />
-      {morning ? <MorningTasks settings={settings} now={now} /> : <Timetable plan={plan} now={now} state={state} />}
-      {/* 남는 공간에만 보이는 아래 그림. 공간이 없으면 0까지 줄어든다. */}
-      <div className="scene" style={{ backgroundImage: `url(${sceneArt})` }} />
-    </div>
+    <>
+      <div className="student drag">
+        <img className="sky-sun" src={sunArt} alt="" />
+        {banner && <div className={`banner banner-${banner.kind}`}>{banner.text}</div>}
+        <header className="clock">
+          <div className="time">
+            {formatKoreanTime(now)}
+            <img className="sky-rays" src={raysArt} alt="" />
+          </div>
+          <div className="date">{formatKoreanDate(now)}</div>
+        </header>
+        <StatusLine state={state} />
+        {morning ? <MorningTasks settings={settings} now={now} /> : <Timetable plan={plan} now={now} state={state} />}
+        {/* 남는 공간에만 보이는 아래 그림. 공간이 없으면 0까지 줄어든다. */}
+        <div className="scene" style={{ backgroundImage: `url(${sceneArt})` }} />
+      </div>
+      <WidgetMenu api={api} name="학생" />
+    </>
   );
 }
 

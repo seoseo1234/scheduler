@@ -31,6 +31,7 @@ export function parseGoogleResponse(json: unknown): ParseResult {
     .filter((t): t is Record<string, unknown> => typeof t === 'object' && t !== null && typeof t.title === 'string')
     .map((t) => ({
       id: str(t.id),
+      listId: str(t.listId),
       title: str(t.title),
       due: typeof t.due === 'string' && /^\d{4}-\d{2}-\d{2}/.test(t.due) ? t.due.slice(0, 10) : null,
       notes: str(t.notes),

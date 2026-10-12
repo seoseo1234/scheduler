@@ -10,7 +10,9 @@
  *  4. 배포 → 새 배포 → 유형 "웹 앱", 실행 사용자 "나", 액세스 권한 "모든 사용자"
  *  5. 웹 앱 URL(…/exec)을 우리반 시계 설정 화면에 붙여넣고 "연결 테스트"
  *
- * 보안: URL을 아는 사람도 TOKEN이 없으면 데이터를 받을 수 없습니다.
+ * 코드를 고쳐 붙여넣었다면 배포 → 배포 관리 → 연필(수정) → 버전 "새 버전" → 배포 해야 반영됩니다.
+ *
+ * 보안: URL을 아는 사람도 TOKEN이 없으면 데이터를 받거나 할 일을 바꿀 수 없습니다.
  */
 
 var DEFAULT_DAYS = 7;
@@ -36,6 +38,52 @@ function doGet(e) {
     });
   } catch (err) {
     return json_({ error: 'failed', message: String(err && err.message ? err.message : err) });
+  }
+}
+
+/**
+ * 교사 위젯에서 할 일을 완료·수정·삭제한다.
+ * 본문(JSON): { token, action: 'complete' | 'delete' | 'update', listId, taskId, title?, due?, notes? }
+ */
+function doPost(e) {
+  var body;
+  try {
+    body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+  } catch (err) {
+    return json_({ error: 'badRequest' });
+  }
+  var token = PropertiesService.getScriptProperties().getProperty('TOKEN');
+  if (!token || body.token !== token) {
+    return json_({ error: 'unauthorized' });
+  }
+  try {
+    updateTask_(body);
+    return json_({ ok: true });
+  } catch (err) {
+    return json_({ error: 'failed', message: String(err && err.message ? err.message : err) });
+  }
+}
+
+function updateTask_(b) {
+  if (!b.listId || !b.taskId) throw new Error('할 일을 찾을 수 없어요.');
+  switch (b.action) {
+    case 'complete':
+      Tasks.Tasks.patch({ status: 'completed' }, b.listId, b.taskId);
+      return;
+    case 'delete':
+      Tasks.Tasks.remove(b.listId, b.taskId);
+      return;
+    case 'update':
+      // 마감일을 지울 수 있게 전체를 받아 고친 뒤 통째로 저장한다.
+      var task = Tasks.Tasks.get(b.listId, b.taskId);
+      if (typeof b.title === 'string' && b.title.trim()) task.title = b.title.trim();
+      if (typeof b.notes === 'string') task.notes = b.notes;
+      if (b.due === null || b.due === '') delete task.due;
+      else if (typeof b.due === 'string') task.due = b.due + 'T00:00:00.000Z';
+      Tasks.Tasks.update(task, b.listId, b.taskId);
+      return;
+    default:
+      throw new Error('알 수 없는 요청이에요: ' + b.action);
   }
 }
 
@@ -101,6 +149,7 @@ function getTasks_() {
           if (t.status === 'completed' || !t.title) return;
           out.push({
             id: t.id,
+            listId: list.id,
             title: t.title,
             // due는 "2026-10-06T00:00:00.000Z" 형식이며 날짜 부분만 의미가 있다.
             due: t.due ? String(t.due).slice(0, 10) : null,

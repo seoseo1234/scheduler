@@ -97,7 +97,7 @@ export function GoogleTab({ api, settings, update }: Props) {
           에서 교사 구글 계정으로 새 프로젝트를 만들어요.
         </li>
         <li>
-          <b>코드 붙여넣기</b> — 편집기에 있는 내용을 모두 지우고 아래 코드를 붙여넣은 뒤 저장(Ctrl+S)해요.
+          <b>코드 붙여넣기</b> — 편집기에 있는 내용을 모두 지우고 아래 코드를 붙여넣은 뒤 저장(Ctrl+S)해요. 이미 배포했던 코드를 새로 바꿨다면 <b>배포 → 배포 관리 → 연필(수정) → 버전 "새 버전" → 배포</b>를 해야 반영돼요.
           <div className="row">
             <button onClick={() => void copy('code', appsScriptCode)}>{copied === 'code' ? '복사했어요 ✓' : 'Apps Script 코드 복사'}</button>
           </div>

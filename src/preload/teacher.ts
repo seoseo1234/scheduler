@@ -13,6 +13,9 @@ const TeacherChannel = {
   getGoogle: 'teacher:get-google',
   refreshGoogle: 'teacher:refresh-google',
   googleChanged: 'teacher:google-changed',
+  taskAction: 'teacher:task-action',
+  showMenu: 'teacher:show-menu',
+  menuAction: 'teacher:menu-action',
   toggleCover: 'teacher:toggle-cover',
 } as const satisfies typeof Channels;
 
@@ -31,6 +34,9 @@ const api: TeacherApi = {
   getGoogle: () => ipcRenderer.invoke(TeacherChannel.getGoogle),
   refreshGoogle: () => ipcRenderer.invoke(TeacherChannel.refreshGoogle),
   onGoogle: (cb) => subscribe(TeacherChannel.googleChanged, cb),
+  taskAction: (action) => ipcRenderer.invoke(TeacherChannel.taskAction, action),
+  onShowMenu: (cb) => subscribe(TeacherChannel.showMenu, cb),
+  menuAction: (action) => ipcRenderer.invoke(TeacherChannel.menuAction, action),
   onToggleCover: (cb) => subscribe(TeacherChannel.toggleCover, cb),
 };
 

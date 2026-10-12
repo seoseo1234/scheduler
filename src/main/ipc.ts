@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { app, BrowserWindow, dialog, ipcMain, type IpcMainInvokeEvent } from 'electron';
 import { appEdition } from './autoLaunch';
 import { toDateKey } from '@shared/schedule';
-import { OverlayChannel, SettingsChannel, StudentChannel, TeacherChannel, type PauseMode, type UpdateResult } from '@shared/ipc';
+import { OverlayChannel, SettingsChannel, StudentChannel, TeacherChannel, type PauseMode, type TaskAction, type UpdateResult, type WidgetMenuAction } from '@shared/ipc';
 import type { AlertKind } from '@shared/schedule';
 import type { AlertService } from './alerts';
 import type { GoogleService } from './google';
@@ -42,6 +42,15 @@ export function registerIpc(
   // 학생 창: 교사 데이터가 빠진 설정만 받는다.
   handle('student', StudentChannel.getSettings, () => toStudentSettings(store.get()));
 
+  // 위젯 오른쪽 클릭 메뉴
+  for (const role of ['student', 'teacher'] as const) {
+    const channel = role === 'student' ? StudentChannel.menuAction : TeacherChannel.menuAction;
+    handle(role, channel, (_e, action: WidgetMenuAction) => {
+      if (action === 'hide') windows.setHidden(role, true, true);
+      else if (action === 'settings') windows.openSettings();
+    });
+  }
+
   // 교사 위젯
   handle('teacher', TeacherChannel.getSettings, () => store.get());
   handle('teacher', TeacherChannel.openSettings, () => windows.openSettings());
@@ -49,6 +58,7 @@ export function registerIpc(
   // 구글 데이터는 교사 위젯에서만 받는다.
   handle('teacher', TeacherChannel.getGoogle, () => google.snapshot());
   handle('teacher', TeacherChannel.refreshGoogle, () => google.refresh());
+  handle('teacher', TeacherChannel.taskAction, (_e, action: TaskAction) => google.taskAction(action));
   // 아침 할 일은 교사 위젯에서 바로 고친다 (학생 화면에 즉시 반영)
   handle('teacher', TeacherChannel.updateMorningTasks, (_e, morningTasks: MorningTasks) => tryUpdate({ morningTasks }));
 

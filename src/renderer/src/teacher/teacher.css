@@ -110,3 +110,32 @@
 .bucket-today .sub-head { color: var(--accent); }
 .tasks .sub-head, .upcoming .sub-head { font-size: 0.8em; color: var(--muted); margin: 0.4em 0 0.15em; }
 .upcoming .sub-head { margin-bottom: 0; }
+
+/* 할 일: 동그라미를 누르면 완료, 마우스를 올리면 수정·삭제 버튼 */
+.tasks li { position: relative; flex-wrap: wrap; align-items: center; border-radius: 0.5em; }
+.tasks li.busy { opacity: 0.5; }
+.task-check {
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  padding: 0;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.task-check:hover:not(:disabled) { background: var(--accent-soft); }
+.task-check:hover:not(:disabled)::after { content: '✓'; display: grid; place-items: center; height: 100%; color: var(--accent); font-size: 0.75em; }
+.task-check:disabled { border-color: var(--line); cursor: default; }
+.task-tools { display: flex; gap: 0.15em; opacity: 0; transition: opacity 0.15s; }
+.tasks li:hover .task-tools, .task-tools:focus-within { opacity: 1; }
+.task-tools button { font: inherit; font-size: 0.85em; color: var(--muted); background: none; border: none; padding: 0 0.2em; cursor: pointer; }
+.task-tools button:hover { color: var(--accent); }
+.task-error { flex-basis: 100%; color: var(--warn); font-size: 0.8em; }
+.tasks li.task-edit { flex-direction: column; align-items: stretch; gap: 0.3em; padding: 0.4em 0.5em; background: var(--accent-soft); }
+.task-edit input { font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 0.4em; padding: 0.15em 0.4em; }
+.task-edit-row { display: flex; gap: 0.3em; align-items: center; }
+.task-edit-row input { flex: 1; min-width: 0; }
+.task-edit-row button { font: inherit; font-size: 0.85em; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 0.4em; padding: 0.1em 0.5em; cursor: pointer; }
+.task-edit-row button.save { background: var(--accent-fill); color: var(--on-accent); border-color: var(--accent-fill); }
+.placeholder.small { font-size: 0.8em; }

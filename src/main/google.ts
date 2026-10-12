@@ -2,11 +2,13 @@ import { EventEmitter } from 'node:events';
 import { net, powerMonitor, safeStorage } from 'electron';
 import Store from 'electron-store';
 import { parseGoogleResponse, taskListNames } from '@shared/google';
-import type { GoogleData, GoogleSnapshot, GoogleStatus } from '@shared/types';
-import type { ConnectionTestResult, GoogleInfo } from '@shared/ipc';
+import type { GoogleData, GoogleSnapshot, GoogleStatus, GoogleTask } from '@shared/types';
+import type { ConnectionTestResult, GoogleInfo, TaskAction, TaskActionResult } from '@shared/ipc';
 import type { SettingsStore } from './store';
 
 const FETCH_TIMEOUT_MS = 20_000;
+const OLD_SCRIPT_MESSAGE =
+  "할 일을 완료·수정·삭제하려면 설정 → 구글 연동에서 Apps Script 코드를 다시 복사해 붙여넣고, 배포 관리에서 새 버전으로 배포해 주세요.";
 
 class GoogleFetchError extends Error {}
 
@@ -133,49 +135,39 @@ export class GoogleService extends EventEmitter<{ change: [GoogleSnapshot] }> {
     }
   }
 
+  /** 교사 위젯에서 할 일을 완료·수정·삭제한다. 성공하면 화면에 바로 반영하고 구글에서 다시 받아 맞춘다. */
+  async taskAction(action: TaskAction): Promise<TaskActionResult> {
+    const { google } = this.store.get();
+    const token = this.getToken();
+    if (!google.webAppUrl || !token) return { ok: false, message: '구글 연동이 설정되지 않았어요.' };
+    if (!action.listId) return { ok: false, message: OLD_SCRIPT_MESSAGE };
+    try {
+      const json = (await this.request(google.webAppUrl, token, { body: action })) as { ok?: boolean; error?: string; message?: string };
+      if (json.error === 'unauthorized') return { ok: false, message: '토큰이 일치하지 않아요. 스크립트 속성의 TOKEN 값과 같은지 확인하세요.' };
+      if (json.error) return { ok: false, message: `할 일을 바꾸지 못했어요: ${json.message ?? json.error}` };
+      if (json.ok !== true) return { ok: false, message: OLD_SCRIPT_MESSAGE };
+    } catch (err) {
+      return { ok: false, message: err instanceof Error ? err.message : String(err) };
+    }
+    this.applyLocally(action);
+    void this.refresh();
+    return { ok: true };
+  }
+
+  private applyLocally(action: TaskAction): void {
+    const data = this.cache.get('data');
+    if (!data) return;
+    const same = (t: GoogleTask) => t.id === action.taskId && t.listId === action.listId;
+    const tasks =
+      action.action === 'update'
+        ? data.tasks.map((t) => (same(t) ? { ...t, title: action.title.trim() || t.title, due: action.due, notes: action.notes } : t))
+        : data.tasks.filter((t) => !same(t));
+    this.cache.set('data', { ...data, tasks });
+    this.emit('change', this.snapshot());
+  }
+
   private async fetchData(url: string, token: string, days: number): Promise<GoogleData> {
-    let parsed: URL;
-    try {
-      parsed = new URL(url);
-    } catch {
-      throw new GoogleFetchError('웹 앱 URL 형식이 올바르지 않아요. https://script.google.com/… 주소를 붙여넣으세요.');
-    }
-    // 개발·테스트용 로컬 서버만 http를 허용한다.
-    const local = parsed.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(parsed.hostname);
-    if (parsed.protocol !== 'https:' && !local) throw new GoogleFetchError('웹 앱 URL은 https:// 로 시작해야 해요.');
-    parsed.searchParams.set('token', token);
-    parsed.searchParams.set('days', String(days));
-
-    if (!local && !net.isOnline()) throw new GoogleFetchError('인터넷에 연결되어 있지 않아요.');
-
-    let res: Response;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    try {
-      res = await net.fetch(parsed.toString(), { signal: controller.signal, redirect: 'follow' });
-    } catch {
-      throw new GoogleFetchError(
-        'script.google.com에 접속하지 못했어요. 인터넷 연결을 확인하고, 학교망 방화벽이 script.google.com을 막고 있는지 정보 담당 선생님께 확인해 주세요.',
-      );
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    const body = await res.text();
-    if (res.status === 401 || res.status === 403 || res.status === 404 || /^\s*</.test(body)) {
-      throw new GoogleFetchError(
-        "웹 앱에 접근할 수 없어요. 배포할 때 '실행 사용자: 나', '액세스 권한: 모든 사용자'로 했는지, URL이 /exec로 끝나는지 확인하세요.",
-      );
-    }
-    if (!res.ok) throw new GoogleFetchError(`구글 서버 오류가 났어요 (HTTP ${res.status}). 잠시 뒤 다시 시도해 주세요.`);
-
-    let json: unknown;
-    try {
-      json = JSON.parse(body);
-    } catch {
-      throw new GoogleFetchError('응답 형식이 올바르지 않아요. Apps Script 코드를 다시 붙여넣고 새로 배포해 주세요.');
-    }
-    const result = parseGoogleResponse(json);
+    const result = parseGoogleResponse(await this.request(url, token, { days }));
     if (result.ok) return result.data;
     switch (result.code) {
       case 'unauthorized':
@@ -188,5 +180,61 @@ export class GoogleService extends EventEmitter<{ change: [GoogleSnapshot] }> {
         throw new GoogleFetchError('응답 형식이 올바르지 않아요. Apps Script 코드를 다시 붙여넣고 새로 배포해 주세요.');
     }
   }
-}
 
+  /**
+   * 웹 앱에 요청해 JSON을 받는다.
+   * body가 없으면 GET으로 데이터를 받고, 있으면 POST로 할 일을 바꾼다 (토큰은 URL이 아니라 본문에 넣는다).
+   */
+  private async request(url: string, token: string, opts: { days?: number; body?: object }): Promise<unknown> {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new GoogleFetchError('웹 앱 URL 형식이 올바르지 않아요. https://script.google.com/… 주소를 붙여넣으세요.');
+    }
+    // 개발·테스트용 로컬 서버만 http를 허용한다.
+    const local = parsed.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(parsed.hostname);
+    if (parsed.protocol !== 'https:' && !local) throw new GoogleFetchError('웹 앱 URL은 https:// 로 시작해야 해요.');
+    const init: RequestInit = { redirect: 'follow' };
+    if (opts.body) {
+      init.method = 'POST';
+      // Apps Script는 text/plain 본문을 그대로 e.postData.contents로 준다.
+      init.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+      init.body = JSON.stringify({ token, ...opts.body });
+    } else {
+      parsed.searchParams.set('token', token);
+      parsed.searchParams.set('days', String(opts.days ?? 7));
+    }
+
+    if (!local && !net.isOnline()) throw new GoogleFetchError('인터넷에 연결되어 있지 않아요.');
+
+    let res: Response;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      res = await net.fetch(parsed.toString(), { ...init, signal: controller.signal });
+    } catch {
+      throw new GoogleFetchError(
+        'script.google.com에 접속하지 못했어요. 인터넷 연결을 확인하고, 학교망 방화벽이 script.google.com을 막고 있는지 정보 담당 선생님께 확인해 주세요.',
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const body = await res.text();
+    // 예전 코드에는 doPost가 없어 구글이 오류 페이지(HTML)를 돌려준다.
+    if (opts.body && /^\s*</.test(body) && /doPost/.test(body)) throw new GoogleFetchError(OLD_SCRIPT_MESSAGE);
+    if (res.status === 401 || res.status === 403 || res.status === 404 || /^\s*</.test(body)) {
+      throw new GoogleFetchError(
+        "웹 앱에 접근할 수 없어요. 배포할 때 '실행 사용자: 나', '액세스 권한: 모든 사용자'로 했는지, URL이 /exec로 끝나는지 확인하세요.",
+      );
+    }
+    if (!res.ok) throw new GoogleFetchError(`구글 서버 오류가 났어요 (HTTP ${res.status}). 잠시 뒤 다시 시도해 주세요.`);
+
+    try {
+      return JSON.parse(body);
+    } catch {
+      throw new GoogleFetchError('응답 형식이 올바르지 않아요. Apps Script 코드를 다시 붙여넣고 새로 배포해 주세요.');
+    }
+  }
+}

@@ -1,18 +1,25 @@
 // preload가 window.api로 노출하는 API 타입. 창 종류마다 다른 API를 받는다.
 import type { AlertKind } from './schedule/alerts';
-import type { AppInfo, AppUpdateStatus, BannerPayload, ConnectionTestResult, GoogleInfo, OverlayPayload, PauseMode, SoundPayload, UpdateResult } from './ipc';
+import type { AppInfo, AppUpdateStatus, BannerPayload, MenuPoint, WidgetMenuAction, ConnectionTestResult, GoogleInfo, OverlayPayload, PauseMode, SoundPayload, TaskAction, TaskActionResult, UpdateResult } from './ipc';
 import type { GoogleSnapshot, MonitorInfo, MorningTasks, Settings, StudentSettings, TeacherSettings } from './types';
 
 type Unsubscribe = () => void;
 
-export interface StudentApi {
+/** 위젯 오른쪽 클릭 메뉴 (학생·교사 공통) */
+export interface WidgetMenuApi {
+  /** 잠금을 풀어 창 전체가 끌기 영역일 때는 메인이 메뉴 위치를 보내 준다. */
+  onShowMenu(cb: (p: MenuPoint) => void): Unsubscribe;
+  menuAction(action: WidgetMenuAction): Promise<void>;
+}
+
+export interface StudentApi extends WidgetMenuApi {
   getSettings(): Promise<StudentSettings>;
   onSettings(cb: (s: StudentSettings) => void): Unsubscribe;
   onBanner(cb: (b: BannerPayload) => void): Unsubscribe;
   onSound(cb: (s: SoundPayload) => void): Unsubscribe;
 }
 
-export interface TeacherApi {
+export interface TeacherApi extends WidgetMenuApi {
   getSettings(): Promise<TeacherSettings>;
   onSettings(cb: (s: TeacherSettings) => void): Unsubscribe;
   openSettings(): Promise<void>;
@@ -20,6 +27,8 @@ export interface TeacherApi {
   updateMorningTasks(tasks: MorningTasks): Promise<UpdateResult<Settings>>;
   getGoogle(): Promise<GoogleSnapshot>;
   refreshGoogle(): Promise<void>;
+  /** 구글 할 일 완료·수정·삭제 */
+  taskAction(action: TaskAction): Promise<TaskActionResult>;
   onGoogle(cb: (g: GoogleSnapshot) => void): Unsubscribe;
   /** 가리기 단축키 */
   onToggleCover(cb: () => void): Unsubscribe;

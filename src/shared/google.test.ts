@@ -14,7 +14,7 @@ const ev = (p: Partial<GoogleEvent>): GoogleEvent => ({
   calendar: '업무',
   ...p,
 });
-const task = (title: string, due: string | null, list = '업무'): GoogleTask => ({ id: title, title, due, notes: '', list });
+const task = (title: string, due: string | null, list = '업무'): GoogleTask => ({ id: title, listId: 'L1', title, due, notes: '', list });
 
 describe('parseGoogleResponse', () => {
   it('accepts the documented format', () => {
@@ -44,7 +44,7 @@ describe('parseGoogleResponse', () => {
   it('drops malformed entries', () => {
     const r = parseGoogleResponse({ events: [null, { title: 'no start' }], tasks: [{ due: '2026-10-01' }, { title: 't', due: 'bad' }] });
     expect(r.ok && r.data.events).toEqual([]);
-    expect(r.ok && r.data.tasks).toEqual([{ id: '', title: 't', due: null, notes: '', list: '' }]);
+    expect(r.ok && r.data.tasks).toEqual([{ id: '', listId: '', title: 't', due: null, notes: '', list: '' }]);
   });
 });
 

@@ -10,11 +10,13 @@ import {
   type TodayEvent,
 } from '@shared/google';
 import { formatKoreanDate, formatKoreanTime, isPaused, remainingMinutes } from '@shared/schedule';
-import type { AlertSettings, GoogleEvent, GoogleSnapshot, GoogleStatus, TeacherSettings } from '@shared/types';
+import type { TaskAction } from '@shared/ipc';
+import type { AlertSettings, GoogleEvent, GoogleSnapshot, GoogleStatus, GoogleTask, TeacherSettings } from '@shared/types';
 import { MorningTasksQuickEditor } from '../common/MorningTasksEditor';
 import { useApiSettings } from '../common/useApiSettings';
 import { useNow } from '../common/useNow';
 import { useWidgetDisplay } from '../common/widget';
+import { WidgetMenu } from '../common/WidgetMenu';
 
 export function TeacherWidget({ api }: { api: TeacherApi }) {
   const settings = useApiSettings(api);
@@ -63,7 +65,7 @@ export function TeacherWidget({ api }: { api: TeacherApi }) {
             <Events snapshot={google} settings={settings} now={now} onOpenSettings={() => void api.openSettings()} />
           </Section>
           <Section id="tasks" title="할 일">
-            <Tasks snapshot={google} settings={settings} now={now} />
+            <Tasks api={api} snapshot={google} settings={settings} now={now} />
           </Section>
           <Section id="morning" title="아침 할 일">
             <MorningTasksQuickEditor
@@ -74,6 +76,7 @@ export function TeacherWidget({ api }: { api: TeacherApi }) {
           </Section>
         </div>
       )}
+      <WidgetMenu api={api} name="교사" />
     </div>
   );
 }
@@ -240,32 +243,125 @@ function Events(props: { snapshot: GoogleSnapshot | null; settings: TeacherSetti
   );
 }
 
-function Tasks({ snapshot, settings, now }: { snapshot: GoogleSnapshot | null; settings: TeacherSettings; now: Date }) {
+function Tasks(props: { api: TeacherApi; snapshot: GoogleSnapshot | null; settings: TeacherSettings; now: Date }) {
+  const { api, snapshot, settings, now } = props;
   if (!snapshot?.data) return <p className="placeholder">구글 태스크가 연결되지 않았어요.</p>;
   const groups = groupTasks(snapshot.data.tasks, now, settings.google.lists);
   if (groups.length === 0) return <p className="placeholder">남은 할 일이 없어요. 🎉</p>;
   const multipleLists = new Set(snapshot.data.tasks.map((t) => t.list)).size > 1;
+  // 예전 Apps Script 코드는 목록 ID를 보내지 않아 할 일을 바꿀 수 없다.
+  const editable = snapshot.data.tasks.some((t) => t.listId);
   return (
     <div className="tasks">
+      {!editable && (
+        <p className="placeholder small">
+          여기서 할 일을 완료·수정·삭제하려면 설정 → 구글 연동에서 Apps Script 코드를 다시 붙여넣고 새 버전으로 배포하세요.
+        </p>
+      )}
       {groups.map((g) => (
         <div key={g.bucket} className={`bucket bucket-${g.bucket}`}>
           <div className="sub-head">{TASK_BUCKET_LABEL[g.bucket]}</div>
           <ul>
             {g.tasks.map((t) => (
-              <li key={`${t.list}|${t.id}`} title={t.notes || undefined}>
-                <span className="what">{t.title}</span>
-                {t.due && g.bucket !== 'today' && (
-                  <span className="due">
-                    {Number(t.due.slice(5, 7))}/{Number(t.due.slice(8, 10))}
-                  </span>
-                )}
-                {multipleLists && <span className="list">{t.list}</span>}
-              </li>
+              <TaskRow key={`${t.list}|${t.id}`} api={api} task={t} showDue={g.bucket !== 'today'} showList={multipleLists} />
             ))}
           </ul>
         </div>
       ))}
     </div>
+  );
+}
+
+/** 할 일 한 줄: 동그라미를 누르면 완료, ✎ 수정, ✕ 삭제 */
+function TaskRow(props: { api: TeacherApi; task: GoogleTask; showDue: boolean; showList: boolean }) {
+  const { api, task, showDue, showList } = props;
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(task.title);
+  const [due, setDue] = useState(task.due ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const ids = { listId: task.listId, taskId: task.id };
+  const canEdit = !!task.listId;
+
+  const run = async (action: TaskAction) => {
+    setBusy(true);
+    setError(null);
+    const res = await api.taskAction(action);
+    setBusy(false);
+    if (!res.ok) setError(res.message);
+    return res.ok;
+  };
+  const save = async () => {
+    if (await run({ action: 'update', ...ids, title, due: due || null, notes: task.notes })) setEditing(false);
+  };
+  const startEdit = () => {
+    setTitle(task.title);
+    setDue(task.due ?? '');
+    setError(null);
+    setEditing(true);
+  };
+
+  if (editing) {
+    return (
+      <li className="task-edit">
+        <input
+          className="task-title-input"
+          value={title}
+          autoFocus
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && title.trim()) void save();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+        />
+        <div className="task-edit-row">
+          <input type="date" value={due} onChange={(e) => setDue(e.target.value)} title="마감일 (비우면 없음)" />
+          <button className="save" disabled={busy || !title.trim()} onClick={() => void save()}>
+            저장
+          </button>
+          <button disabled={busy} onClick={() => setEditing(false)}>
+            취소
+          </button>
+        </div>
+        {error && <span className="task-error">{error}</span>}
+      </li>
+    );
+  }
+
+  return (
+    <li className={busy ? 'busy' : undefined} title={task.notes || undefined}>
+      <button
+        className="task-check"
+        title={canEdit ? '완료로 표시' : undefined}
+        aria-label="완료로 표시"
+        disabled={!canEdit || busy}
+        onClick={() => void run({ action: 'complete', ...ids })}
+      />
+      <span className="what">{task.title}</span>
+      {task.due && showDue && (
+        <span className="due">
+          {Number(task.due.slice(5, 7))}/{Number(task.due.slice(8, 10))}
+        </span>
+      )}
+      {showList && <span className="list">{task.list}</span>}
+      {canEdit && (
+        <span className="task-tools">
+          <button title="수정" disabled={busy} onClick={startEdit}>
+            ✎
+          </button>
+          <button
+            title="삭제"
+            disabled={busy}
+            onClick={() => {
+              if (confirm(`"${task.title}" 할 일을 구글 태스크에서 삭제할까요?`)) void run({ action: 'delete', ...ids });
+            }}
+          >
+            ✕
+          </button>
+        </span>
+      )}
+      {error && <span className="task-error">{error}</span>}
+    </li>
   );
 }
 

@@ -10,6 +10,8 @@ const StudentChannel = {
   settingsChanged: 'student:settings-changed',
   alert: 'student:alert',
   playSound: 'student:play-sound',
+  showMenu: 'student:show-menu',
+  menuAction: 'student:menu-action',
 } as const satisfies typeof Channels;
 
 function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
@@ -23,6 +25,8 @@ const api: StudentApi = {
   onSettings: (cb) => subscribe(StudentChannel.settingsChanged, cb),
   onBanner: (cb) => subscribe(StudentChannel.alert, cb),
   onSound: (cb) => subscribe(StudentChannel.playSound, cb),
+  onShowMenu: (cb) => subscribe(StudentChannel.showMenu, cb),
+  menuAction: (action) => ipcRenderer.invoke(StudentChannel.menuAction, action),
 };
 
 contextBridge.exposeInMainWorld('api', api);

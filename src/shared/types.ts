@@ -151,6 +151,8 @@ export interface GoogleEvent {
 
 export interface GoogleTask {
   id: string;
+  /** 할 일 목록 ID. 예전 Apps Script 코드는 보내지 않아 ''이고, 이때는 완료·수정·삭제를 못 한다. */
+  listId: string;
   title: string;
   /** "2026-10-06" 또는 null */
   due: string | null;
