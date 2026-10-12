@@ -71,7 +71,23 @@ export function getDayPlan(settings: PlanSource, date: Date): DayPlan {
     })
     .sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
 
-  return { date: key, status: 'school', template, blocks };
+  return { date: key, status: 'school', template, blocks: dropUnusedTrailingClasses(blocks) };
+}
+
+/**
+ * 시간표에 과목을 넣은 날, 마지막 과목 수업 뒤의 과목 없는 수업(예: 6교시가 없는 날)과
+ * 그 사이 쉬는시간은 그날 없는 것으로 본다. 화면에도 안 나오고 알림도 울리지 않는다.
+ * - 중간에 빈 교시는 입력을 깜빡했을 수 있어 그대로 둔다.
+ * - 과목을 하나도 넣지 않은 날은 시정표 그대로 쓴다.
+ * - 점심시간 등 수업·쉬는시간이 아닌 구간은 남긴다.
+ */
+function dropUnusedTrailingClasses(blocks: PlannedBlock[]): PlannedBlock[] {
+  let last = -1;
+  blocks.forEach((b, i) => {
+    if (b.kind === 'class' && b.subject) last = i;
+  });
+  if (last < 0) return blocks;
+  return blocks.filter((b, i) => i <= last || (b.kind !== 'class' && b.kind !== 'break'));
 }
 
 /** 표시용 이름: "2교시 수학" 또는 과목이 없으면 "2교시" */

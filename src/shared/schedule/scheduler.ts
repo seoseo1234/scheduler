@@ -6,6 +6,7 @@ import {
   isPaused,
   renderAlertTemplate,
   type AlertKind,
+  type AlertTemplateVars,
   type ScheduledAlert,
 } from './alerts';
 import { getDayPlan, type PlannedBlock } from './dayPlan';
@@ -25,16 +26,27 @@ export interface AlertEvent {
   /** 알림음 재생 여부 */
   sound: boolean;
   preview?: boolean;
+  /** 배너 문구의 {남은분}을 화면에서 1분마다 다시 채우기 위한 정보 (미리보기에는 없음) */
+  countdown?: BannerCountdown;
+}
+
+export interface BannerCountdown {
+  template: string;
+  vars: AlertTemplateVars;
+  /** 수업 시작 시각 */
+  startAt: Date;
 }
 
 /** 예약된 알림을 화면에 띄울 이벤트로 바꾼다. */
 export function toAlertEvent(alert: ScheduledAlert, alerts: AlertSettings, now: Date): AlertEvent {
-  const text = renderAlertTemplate(alerts.templates[alert.kind], alertVars(alert));
+  const template = alerts.templates[alert.kind];
+  const vars = alertVars(alert);
+  const text = renderAlertTemplate(template, vars);
   const start = alert.block.startAt.getTime();
   switch (alert.kind) {
     case 'banner':
-      // 배너는 해당 교시 시작 시까지 유지
-      return { kind: 'banner', text, until: new Date(start), sound: true };
+      // 배너는 해당 교시 시작 시까지 유지하고, 남은 분은 화면에서 줄여 간다 (3분 → 2분 → 1분).
+      return { kind: 'banner', text, until: new Date(start), sound: true, countdown: { template, vars, startAt: alert.block.startAt } };
     case 'overlay':
       return { kind: 'overlay', text, until: new Date(now.getTime() + alerts.overlaySeconds * 1000), sound: true };
     case 'start':
@@ -99,6 +111,8 @@ export class AlertScheduler {
     const event = toAlertEvent(alert, source.alerts, now);
     // 미리보기 배너는 실제 교시 시작까지 남기지 않고 잠깐만 보여준다.
     if (kind !== 'overlay') event.until = new Date(now.getTime() + 8000);
+    // 미리보기는 정해 둔 분(예: 3분)을 그대로 보여준다.
+    delete event.countdown;
     event.preview = true;
     this.dispatch(event);
     return event;

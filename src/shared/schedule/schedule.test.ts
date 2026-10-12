@@ -115,8 +115,25 @@ describe('getDayPlan subjects', () => {
   });
 });
 
+describe('getDayPlan unused trailing classes', () => {
+  const names = (p: ReturnType<typeof getDayPlan>) => (p.status === 'school' ? p.blocks.map((b) => b.name) : []);
+
+  it('drops classes without a subject after the last subject, keeping lunch', () => {
+    const s = settingsWith({ weeklySubjects: { 1: { '1교시': '국어', '4교시': '수학' } } });
+    const p = getDayPlan(s, MON(0));
+    // 2·3교시는 중간 빈칸이라 남고, 4교시 뒤 5·6교시와 그 사이 쉬는시간은 빠진다. 점심은 남는다.
+    expect(names(p)).toEqual(['아침시간', '1교시', '쉬는시간', '2교시', '쉬는시간', '3교시', '쉬는시간', '4교시', '점심시간']);
+    expect(getCurrentState(p, MON(13, 0)).phase).toBe('afterSchool');
+    expect(computeAlerts(p, s.alerts.offsets).some((a) => a.block.name === '5교시')).toBe(false);
+  });
+
+  it('keeps the whole template when no subjects are entered', () => {
+    expect(names(getDayPlan(settingsWith(), MON(0)))).toContain('6교시');
+  });
+});
+
 describe('getCurrentState', () => {
-  const s = settingsWith({ weeklySubjects: { 1: { '2교시': '수학', '3교시': '체육' } } });
+  const s = settingsWith({ weeklySubjects: { 1: { '2교시': '수학', '3교시': '체육', '6교시': '음악' } } });
   const plan = getDayPlan(s, MON(0));
 
   it('before school', () => {

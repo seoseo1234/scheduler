@@ -82,6 +82,8 @@ export interface BannerPayload {
   text: string;
   /** ISO 시각. 이때 배너를 내린다. */
   until: string;
+  /** 있으면 학생 위젯이 {남은분}을 1분마다 다시 채워 보여준다. */
+  countdown?: { template: string; vars: Record<'교시' | '과목' | '준비물', string>; startAt: string };
 }
 
 export interface SoundPayload {

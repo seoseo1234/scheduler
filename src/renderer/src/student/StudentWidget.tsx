@@ -9,6 +9,8 @@ import {
   getDayPlan,
   getMorningTasks,
   isBlockPast,
+  remainingMinutes,
+  renderAlertTemplate,
   toDateKey,
   type CurrentState,
   type DayPlan,
@@ -147,5 +149,9 @@ function useBanner(api: StudentApi, now: Date): BannerPayload | null {
     return () => offs.forEach((off) => off());
   }, [api]);
   if (!banner || Date.parse(banner.until) <= now.getTime()) return null;
-  return banner;
+  if (!banner.countdown) return banner;
+  // "3분 뒤 …" 배너를 수업 시작까지 남은 분으로 다시 채운다 (3분 → 2분 → 1분).
+  const { template, vars, startAt } = banner.countdown;
+  const minutes = Math.max(1, remainingMinutes(Date.parse(startAt) - now.getTime()));
+  return { ...banner, text: renderAlertTemplate(template, { ...vars, 남은분: minutes }) };
 }

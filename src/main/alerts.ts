@@ -59,6 +59,10 @@ export class AlertService {
       this.windows.showOverlay({ text: e.text, seconds });
     } else {
       const banner: BannerPayload = { kind: e.kind, text: e.text, until: e.until.toISOString() };
+      if (e.countdown) {
+        const { 교시, 과목, 준비물 } = e.countdown.vars;
+        banner.countdown = { template: e.countdown.template, vars: { 교시, 과목, 준비물 }, startAt: e.countdown.startAt.toISOString() };
+      }
       this.windows.sendToStudent(StudentChannel.alert, banner);
     }
     if (e.sound) void this.playSound(e.kind);
