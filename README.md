@@ -101,7 +101,7 @@ src/shared/google.ts       구글 응답 검사, 일정·할 일 표시 계산 (
 src/main/                  Electron 메인: 창·모니터 관리, 알림 서비스, 구글 동기화, 트레이, 바탕화면 고정
 src/preload/               창별 preload (학생/교사/설정/알림 오버레이가 각자 필요한 채널만 노출)
 src/renderer/              React 화면: student, teacher, settings, overlay, identify
-scripts/make-icons.cjs     아이콘 PNG 생성
+resources/icon-source.png  앱 아이콘 원본 (icon.png 512px, tray.png 32px는 여기서 만든 것)
 ```
 
 **개인정보 분리**: 학생 위젯과 알림 오버레이는 별도 preload를 써서 교사용 IPC 채널에 접근할 수 없고, 메인 프로세스는 구글 데이터를 교사 위젯 창으로만 보냅니다. IPC 요청은 보낸 창이 맞는지 확인한 뒤 처리합니다.

@@ -12,7 +12,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons": "node scripts/make-icons.cjs",
     "dist": "electron-vite build && electron-builder --win nsis portable",
     "dist:dir": "electron-vite build && electron-builder --win --dir",
     "release": "electron-vite build && electron-builder --win nsis portable --publish always"
