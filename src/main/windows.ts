@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { BrowserWindow, screen, shell, type BrowserWindowConstructorOptions } from 'electron';
+import { BrowserWindow, Menu, screen, shell, type BrowserWindowConstructorOptions } from 'electron';
 import { OverlayChannel, SettingsChannel, StudentChannel, TeacherChannel, type OverlayPayload } from '@shared/ipc';
 import type { Settings, StudentSettings, WidgetDisplay, WidgetRole } from '@shared/types';
 import { attachToDesktop, desktopMode, detachFromDesktop, setDesktopBounds } from './desktopLayer';
@@ -44,8 +44,10 @@ export class WindowManager {
   private saveTimers: Partial<Record<WidgetRole, NodeJS.Timeout>> = {};
   /** 종료 중이면 위젯 창이 닫혀도 다시 만들지 않는다. */
   quitting = false;
-  /** 트레이 메뉴로 위젯을 숨긴 상태. 프로그램을 다시 켜면 풀린다. */
-  private widgetsHidden = false;
+  /** 숨긴 위젯. 프로그램을 다시 켜면 풀린다. */
+  private hiddenRoles = new Set<WidgetRole>();
+  /** 위젯을 숨기거나 다시 보일 때. fromWidget은 위젯의 오른쪽 클릭 메뉴·닫기로 숨겼는지 */
+  onHiddenChange: ((role: WidgetRole, hidden: boolean, fromWidget: boolean) => void) | null = null;
 
   constructor(private readonly store: SettingsStore) {
     store.on('change', (next, prev) => this.onSettingsChange(next, prev));
@@ -66,16 +68,17 @@ export class WindowManager {
     this.createWidget('teacher');
   }
 
-  get hidden(): boolean {
-    return this.widgetsHidden;
+  isHidden(role: WidgetRole): boolean {
+    return this.hiddenRoles.has(role);
   }
 
-  /** 학생·교사 위젯을 트레이로 숨기거나 다시 보여준다. */
-  setWidgetsHidden(hidden: boolean): void {
-    this.widgetsHidden = hidden;
-    for (const role of ['student', 'teacher'] as const) {
-      const win = this.widgets[role];
-      if (!win || win.isDestroyed()) continue;
+  /** 위젯 하나를 트레이로 숨기거나 다시 보여준다. */
+  setHidden(role: WidgetRole, hidden: boolean, fromWidget = false): void {
+    if (this.hiddenRoles.has(role) === hidden) return;
+    if (hidden) this.hiddenRoles.add(role);
+    else this.hiddenRoles.delete(role);
+    const win = this.widgets[role];
+    if (win && !win.isDestroyed()) {
       if (hidden) {
         detachFromDesktop(win);
         win.hide();
@@ -83,6 +86,16 @@ export class WindowManager {
         this.applyWidget(role);
       }
     }
+    this.onHiddenChange?.(role, hidden, fromWidget);
+  }
+
+  /** 위젯 오른쪽 클릭 메뉴. 윈도우 기본 메뉴(닫기 등) 대신 띄운다. */
+  private popupWidgetMenu(role: WidgetRole, win: BrowserWindow): void {
+    Menu.buildFromTemplate([
+      { label: role === 'student' ? '학생 위젯 숨기기' : '교사 위젯 숨기기', click: () => this.setHidden(role, true, true) },
+      { type: 'separator' },
+      { label: '설정 열기', click: () => this.openSettings() },
+    ]).popup({ window: win });
   }
 
   private createWidget(role: WidgetRole): void {
@@ -117,6 +130,19 @@ export class WindowManager {
     };
     win.on('moved', scheduleSave);
     win.on('resized', scheduleSave);
+    // 잠금을 풀면 창 전체가 끌기 영역이라 오른쪽 클릭에 윈도우 기본 메뉴가 뜬다. 우리 메뉴로 바꾼다.
+    win.on('system-context-menu', (e) => {
+      e.preventDefault();
+      this.popupWidgetMenu(role, win);
+    });
+    win.webContents.on('context-menu', () => this.popupWidgetMenu(role, win));
+    // Alt+F4 등으로 닫으면 없애지 않고 숨긴다 (트레이에서 다시 보이게 할 수 있다).
+    win.on('session-end', () => (this.quitting = true));
+    win.on('close', (e) => {
+      if (this.quitting) return;
+      e.preventDefault();
+      this.setHidden(role, true, true);
+    });
     win.on('closed', () => {
       if (this.widgets[role] === win) delete this.widgets[role];
       // 탐색기 재시작 등으로 바탕화면(WorkerW)과 함께 창이 사라지면 다시 만든다.
@@ -129,7 +155,7 @@ export class WindowManager {
   private applyWidget(role: WidgetRole): void {
     const win = this.widgets[role];
     // 숨긴 동안에는 모니터·설정이 바뀌어도 다시 띄우지 않는다. 보이게 할 때 다시 적용한다.
-    if (!win || win.isDestroyed() || this.widgetsHidden) return;
+    if (!win || win.isDestroyed() || this.hiddenRoles.has(role)) return;
     const cfg = this.store.get().display[role];
     let display = findDisplay(cfg.monitorId);
 
@@ -207,7 +233,7 @@ export class WindowManager {
       const b = next.display[role];
       if (a === b) continue;
       const win = this.widgets[role];
-      if (!win || win.isDestroyed() || this.widgetsHidden) continue;
+      if (!win || win.isDestroyed() || this.hiddenRoles.has(role)) continue;
       // 모니터·레이어·잠금이 바뀌면 저장된 위치까지 다시 적용하고, 나머지는 모양만 바꾼다.
       if (a.monitorId !== b.monitorId || a.layer !== b.layer || a.locked !== b.locked) this.applyWidget(role);
       else this.applyAppearance(win, b);
