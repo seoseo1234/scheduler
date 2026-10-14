@@ -106,6 +106,11 @@ export function GoogleTab({ api, settings, update }: Props) {
           <b>Tasks API 추가</b> — 왼쪽 "서비스" 옆 <b>+</b> → <b>Google Tasks API</b> 선택 → 추가.
         </li>
         <li>
+          <b>권한 허용</b> — 편집기 위쪽 함수 목록에서 <b>doGet</b>을 고르고 <b>▶ 실행</b> → <b>권한 검토</b> → 내 계정 → <b>허용</b>.
+          "확인되지 않은 앱"이 뜨면 <b>고급 → (안전하지 않음)으로 이동</b>을 눌러요. 코드를 새로 붙여넣은 뒤에도 한 번 더 해야 할 일 완료·수정·삭제 권한이
+          생겨요.
+        </li>
+        <li>
           <b>토큰 등록</b> — <b>새 토큰 만들기</b>를 누르면 이 PC에 바로 저장돼요(전에 저장한 토큰은 바뀌어요). <b>복사</b>한 뒤 왼쪽
           톱니바퀴(프로젝트 설정) → 스크립트 속성에 이름 <code>TOKEN</code>, 값에 붙여넣고 저장해요.
           <div className="token-box">

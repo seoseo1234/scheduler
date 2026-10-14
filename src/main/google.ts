@@ -7,6 +7,8 @@ import type { ConnectionTestResult, GoogleInfo, TaskAction, TaskActionResult } f
 import type { SettingsStore } from './store';
 
 const FETCH_TIMEOUT_MS = 20_000;
+const NO_WRITE_PERMISSION_MESSAGE =
+  '구글이 할 일을 바꿀 권한을 아직 주지 않았어요. Apps Script 편집기 위쪽 함수 목록에서 doGet을 고르고 ▶ 실행 → 권한 검토 → 허용을 눌러 주세요.';
 const OLD_SCRIPT_MESSAGE =
   "할 일을 완료·수정·삭제하려면 설정 → 구글 연동에서 Apps Script 코드를 다시 복사해 붙여넣고, 배포 관리에서 새 버전으로 배포해 주세요.";
 
@@ -144,6 +146,8 @@ export class GoogleService extends EventEmitter<{ change: [GoogleSnapshot] }> {
     try {
       const json = (await this.request(google.webAppUrl, token, { body: action })) as { ok?: boolean; error?: string; message?: string };
       if (json.error === 'unauthorized') return { ok: false, message: '토큰이 일치하지 않아요. 스크립트 속성의 TOKEN 값과 같은지 확인하세요.' };
+      // 처음에 할 일을 "읽기"만 허용했으면 바꾸기 권한(auth/tasks)이 없어 구글이 거절한다.
+      if (json.error && /auth\/tasks|권한|permission/i.test(json.message ?? '')) return { ok: false, message: NO_WRITE_PERMISSION_MESSAGE };
       if (json.error) return { ok: false, message: `할 일을 바꾸지 못했어요: ${json.message ?? json.error}` };
       if (json.ok !== true) return { ok: false, message: OLD_SCRIPT_MESSAGE };
     } catch (err) {
